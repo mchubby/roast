@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:nevow="http://nevow.com/ns/nevow/0.1"
+      xml:lang="fi">
+  <head>
+    <title>
+      Page with a template:
+      <nevow:invisible nevow:render="title">
+	Replace title here
+      </nevow:invisible>
+    </title>
+  </head>
+  <body>
+    <h1>
+      Header from template:
+      <nevow:invisible nevow:render="title">
+	Replace title here
+      </nevow:invisible>
+    </h1>
+
+    <div nevow:render="content">
+      Replace content here.
+    </div>
+
+    <div>
+      Footer from template.
+    </div>
+  </body>
+</html>
