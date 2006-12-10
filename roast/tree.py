@@ -46,17 +46,16 @@ class Tree(object):
 
         for childName in self._listChildren():
             child = self.path.child(childName)
-            dstDir = destination.child(childName)
-            dstFile = dstDir.child('index.html')
 
             if child.isdir():
                 t = self.__class__(child, _root=self.root)
+                dstDir = destination.child(childName)
                 dstDir.createDirectory()
                 t.export(dstDir)
             else:
+                dstFile = destination.child(childName).siblingExtension('.html')
                 child = child.siblingExtension('.rst')
                 if child.isfile():
-                    dstDir.createDirectory()
                     self._exportFile(child, dstFile)
 
     def listChildren(self):
