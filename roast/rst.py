@@ -9,6 +9,9 @@ from roast import htmlutil
 from roast.directives import python
 python.install()
 
+from roast.directives import blockquote
+blockquote.install()
+
 class Template(rend.Fragment):
     def __init__(self, **kw):
         self.title = kw.pop('title')
