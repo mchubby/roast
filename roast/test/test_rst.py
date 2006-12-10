@@ -61,3 +61,15 @@ class HTML(unittest.TestCase):
 
         d = self.verify(got, 'data', 'with-template', 'output', 'index.html')
         return d
+
+    def test_directive_python(self):
+        src = self.slurp('data', 'directive-python', 'input', 'index.rst')
+        got = rst.asHTML(src)
+        d = self.verify(got, 'data', 'directive-python', 'output', 'index.html')
+        return d
+
+    def test_directive_python_comment(self):
+        src = self.slurp('data', 'directive-python-comment', 'input', 'index.rst')
+        got = rst.asHTML(src)
+        d = self.verify(got, 'data', 'directive-python-comment', 'output', 'index.html')
+        return d

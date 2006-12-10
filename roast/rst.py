@@ -6,6 +6,9 @@ from nevow import rend, loaders, tags, flat
 
 from roast import htmlutil
 
+from roast.directives import python
+python.install()
+
 class Template(rend.Fragment):
     def __init__(self, **kw):
         self.title = kw.pop('title')
