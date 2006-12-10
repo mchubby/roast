@@ -12,6 +12,9 @@ python.install()
 from roast.directives import blockquote
 blockquote.install()
 
+from roast.directives import comment
+comment.install()
+
 class Template(rend.Fragment):
     def __init__(self, **kw):
         self.title = kw.pop('title')
