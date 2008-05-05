@@ -27,6 +27,10 @@ class Template(rend.Fragment):
         l = [tags.xml(node.toxml('utf-8')) for node in self.original.childNodes]
         return ctx.tag.clear()[l]
 
+    def __repr__(self):
+        return '%s(title=%r)' % (self.__class__.__name__,
+                                 self.title)
+
 def asHTML(text, template=None):
     html, publisher = publish_programmatically(
         source_class=io.StringInput,
@@ -43,18 +47,24 @@ def asHTML(text, template=None):
         writer_name=None,
         settings=None,
         settings_spec=None,
-        settings_overrides={'input_encoding': 'utf-8',
-                            'output_encoding': 'utf-8',
-                            },
+        settings_overrides=dict(
+            input_encoding='utf-8',
+            output_encoding='utf-8',
+            embed_stylesheet=False,
+            generator=False,
+            ),
         config_section=None,
         enable_exit_status=None)
-
-    if template is None:
-        return html
 
     tree = minidom.parseString(html)
     title = htmlutil.getTitle(tree)
     title = htmlutil.getNodeContentsAsText(title)
+
+    # kill generator meta tag
+    htmlutil.killGeneratorMetaTags(tree)
+
+    # kill stylesheet
+    htmlutil.killLinkedStylesheet(tree)
 
     body = htmlutil.getOnlyElementByTagName(tree, 'body')
 
@@ -68,6 +78,9 @@ def asHTML(text, template=None):
         if htmlutil.elementHasClass(h1, 'title'):
             h1.parentNode.removeChild(h1)
             break
+
+    if template is None:
+        return tree.toxml('utf-8')
 
     template = Template(original=body,
                         docFactory=loaders.xmlstr(template),

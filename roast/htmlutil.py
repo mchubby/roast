@@ -44,3 +44,17 @@ def getElementsByClass(iNode, name):
             matches_append(c)
         slice[:0] = c.childNodes
     return matches
+
+def killGeneratorMetaTags(tree):
+    head = getHead(tree)
+    for meta in head.getElementsByTagName('meta'):
+        name = meta.getAttribute('name')
+        if name == 'generator':
+            head.removeChild(meta)
+
+def killLinkedStylesheet(tree):
+    head = getHead(tree)
+    for meta in head.getElementsByTagName('link'):
+        type_ = meta.getAttribute('type')
+        if type_ == 'text/css':
+            head.removeChild(meta)

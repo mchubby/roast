@@ -1,6 +1,7 @@
 from twisted.trial import unittest
 
 import sys, os
+from xml.dom import minidom
 
 from twisted.internet import utils
 
@@ -29,13 +30,22 @@ class TestFormattingMixin(object):
         f.write(got)
         f.close()
 
+        wantpath = self.path(*segments)
         d = utils.getProcessOutputAndValue(
             'xmldiff',
-            args=[self.path(*segments), os.path.abspath(path)])
+            args=[
+                wantpath,
+                os.path.abspath(path),
+                ],
+            )
 
         def cb((out, err, code)):
             if out or err or code!=0:
-                l = ["Files are not equal according to xmldiff."]
+                l = ["Files are not equal according to xmldiff",
+                     "got: %s" % os.path.join('_trial_temp', path),
+                     "want: %s" % wantpath,
+                     "xmldiff:",
+                     ]
                 for line in out.splitlines():
                     l.append("%s" % line)
                 for line in err.splitlines():
