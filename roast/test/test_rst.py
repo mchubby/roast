@@ -17,3 +17,9 @@ class HTML(unittest.TestCase, util.TestFormattingMixin):
 
         d = self.verify(got, 'data', 'with-template', 'output', 'index.html')
         return d
+
+    def test_entities(self):
+        src = self.slurp('data', 'entities', 'input', 'index.rst')
+        got = rst.asHTML(src)
+        d = self.verify(got, 'data', 'entities', 'output', 'index.html')
+        return d
