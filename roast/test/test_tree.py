@@ -75,3 +75,11 @@ class Export(unittest.TestCase, _PathMixin):
         t.export(filepath.FilePath(got))
         d = self.verify(got, self.path('data', 'with-template', 'output'))
         return d
+
+    def test_link_rewrite(self):
+        t = tree.Tree(filepath.FilePath(self.path('data', 'link-rewrite', 'input')))
+        got = self.mktemp()
+        os.mkdir(got)
+        t.export(filepath.FilePath(got))
+        d = self.verify(got, self.path('data', 'link-rewrite', 'output'))
+        return d

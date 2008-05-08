@@ -31,7 +31,7 @@ class Template(rend.Fragment):
         return '%s(title=%r)' % (self.__class__.__name__,
                                  self.title)
 
-def asHTML(text, template=None):
+def asDOM(text, template=None):
     html, publisher = publish_programmatically(
         source_class=io.StringInput,
         source=text,
@@ -79,11 +79,16 @@ def asHTML(text, template=None):
             h1.parentNode.removeChild(h1)
             break
 
-    if template is None:
-        return tree.toxml('utf-8')
+    if template is not None:
+        template = Template(original=body,
+                            docFactory=loaders.xmlstr(template),
+                            title=title,
+                            )
+        html = flat.flatten(template)
+        tree = minidom.parseString(html)
 
-    template = Template(original=body,
-                        docFactory=loaders.xmlstr(template),
-                        title=title,
-                        )
-    return flat.flatten(template)
+    return tree
+
+def asHTML(text, template=None):
+    tree = asDOM(text, template=template)
+    return tree.toxml('utf-8')

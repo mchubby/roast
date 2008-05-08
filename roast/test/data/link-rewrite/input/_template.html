@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:nevow="http://nevow.com/ns/nevow/0.1"
+      >
+  <head>
+    <title>
+      <nevow:invisible nevow:render="title"/>
+    </title>
+    <link rel="shortcut icon" type="image/x-icon" href="/images/favicon.ico"/>
+    <link rel="stylesheet" type="text/css" href="/style/main.css"/>
+  </head>
+  <body>
+    <h1>
+      <nevow:invisible nevow:render="title"/>
+    </h1>
+
+    <div nevow:render="content">
+      Replace content here.
+    </div>
+
+    <div>
+      <a href="/link">absolute</a>
+      <a href="link">relative</a>
+      <a href="http://example.com/bar">global</a>
+    </div>
+  </body>
+</html>

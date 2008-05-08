@@ -28,21 +28,42 @@ class Tree(object):
 
             path = path.parent()
 
-    def _exportFile(self, src, dst):
+    def _fixLinks(self, tree, depth):
+        assert depth >= 0
+        work = [tree]
+        while work:
+            node = work.pop(0)
+            if hasattr(node, 'getAttribute'):
+                for attr in ['href', 'src']:
+                    path = node.getAttribute(attr)
+                    if path is not None:
+                        if path.startswith('/'):
+                            new = '../' * depth + path[1:]
+                            if new == '':
+                                new = './'
+                            node.setAttribute(attr, new)
+
+            work[:0] = node.childNodes
+
+    def _exportFile(self, src, dst, depth):
         template = self.lookUp(src.parent(), '_template.html')
         if template is not None:
             template = template.getContent()
 
         text = src.getContent()
-        html = rst.asHTML(text, template=template)
+        tree = rst.asDOM(text, template=template)
+
+        self._fixLinks(tree, depth)
+
+        html = tree.toxml('utf-8')
         dst.setContent(html)
 
-    def export(self, destination):
+    def export(self, destination, depth=0):
         assert isinstance(destination, filepath.FilePath)
 
         index = self.path.child('index.rst')
         if index.isfile():
-            self._exportFile(index, destination.child('index.html'))
+            self._exportFile(index, destination.child('index.html'), depth=depth)
 
         for childName in self._listChildren():
             child = self.path.child(childName)
@@ -51,12 +72,12 @@ class Tree(object):
                 t = self.__class__(child, _root=self.root)
                 dstDir = destination.child(childName)
                 dstDir.createDirectory()
-                t.export(dstDir)
+                t.export(dstDir, depth=depth+1)
             else:
                 dstFile = destination.child(childName).siblingExtension('.html')
                 child = child.siblingExtension('.rst')
                 if child.isfile():
-                    self._exportFile(child, dstFile)
+                    self._exportFile(child, dstFile, depth=depth)
 
     def listChildren(self):
         d = defer.maybeDeferred(self._listChildren)
