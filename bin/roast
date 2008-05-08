@@ -1,0 +1,37 @@
+#!/usr/bin/python
+import errno
+import optparse
+import os
+import sys
+
+from twisted.python import filepath
+from roast import tree
+
+def main():
+    parser = optparse.OptionParser()
+    parser.set_usage('%prog SOURCE DEST')
+    (options, args) = parser.parse_args()
+
+    try:
+        (source, dest) = args
+    except ValueError:
+        parser.error('Expected exactly two arguments.')
+
+    source = filepath.FilePath(source)
+    try:
+        os.mkdir(dest)
+    except OSError, e:
+        if e.errno == errno.EEXIST:
+            sys.stderr.write(
+                '%s: Destination must not exist: %r\n'
+                % (parser.get_prog_name(), dest),
+                )
+        else:
+            raise
+
+    dest = filepath.FilePath(dest)
+    t = tree.Tree(path=source)
+    t.export(dest)
+
+if __name__ == '__main__':
+    main()
