@@ -83,7 +83,15 @@ class Tree(object):
                     child = child.siblingExtension('.rst')
                     if child.isfile():
                         self._exportFile(child, dstFile, depth=depth)
-                elif ext in ['.css']:
+                elif ext in [
+                    '.css',
+                    '.gif',
+                    '.htc',
+                    '.jpg',
+                    '.js',
+                    '.png',
+                    '.txt',
+                    ]:
                     dstFile = destination.child(childName)
                     self._exportFileByCopy(child, dstFile)
 
@@ -108,7 +116,15 @@ class Tree(object):
                     # index is implicitly used by the parent resource
                     continue
                 yield base
-            elif ext in ['.css']:
+            elif ext in [
+                '.css',
+                '.gif',
+                '.htc',
+                '.jpg',
+                '.js',
+                '.png',
+                '.txt',
+                ]:
                 yield name
             elif ext == '':
                 child = self.path.child(name)

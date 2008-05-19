@@ -1,0 +1,1 @@
+txt needs to be supported, if for nothing else but robots.txt

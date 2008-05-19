@@ -41,12 +41,19 @@ class Navigation(unittest.TestCase, _PathMixin):
         d.addCallback(verify)
         return d
 
-    def test_css(self):
+    def test_misc_files(self):
         t = tree.Tree(filepath.FilePath(self.path('data', 'copy', 'input')))
         d = t.listChildren()
         def verify(got):
             got = sets.ImmutableSet(got)
-            want = sets.ImmutableSet(['something.css'])
+            want = sets.ImmutableSet([
+                    'something.css',
+                    'scripts.js',
+                    'picture.png',
+                    'ie-hacks.htc',
+                    'boring.txt',
+                    'another.jpg',
+                    ])
             self.assertEquals(got, want)
         d.addCallback(verify)
         return d
@@ -96,14 +103,11 @@ class Export(unittest.TestCase, _PathMixin):
                         l.append("xmldiff exited with status %d" % p.returncode)
                     raise unittest.FailTest('\n'.join(l))
 
-            elif ext in ['.css']:
+            else:
                 got_data = file(os.path.join(got, path), 'rb').read()
                 want_data = file(os.path.join(want, path), 'rb').read()
                 if got_data != want_data:
                     raise unittest.FailTest('Files are not equal: %s' % path)
-
-            else:
-                raise unittest.FailTest('Unknown file extension: %s' % path)
 
     def test_simple(self):
         t = tree.Tree(filepath.FilePath(self.path('data', 'simple', 'input')))
