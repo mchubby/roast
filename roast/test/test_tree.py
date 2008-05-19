@@ -1,6 +1,7 @@
 from twisted.trial import unittest
 
 import os, sets
+import subprocess
 
 from twisted.internet import utils
 from twisted.python import filepath
@@ -40,25 +41,69 @@ class Navigation(unittest.TestCase, _PathMixin):
         d.addCallback(verify)
         return d
 
+    def test_css(self):
+        t = tree.Tree(filepath.FilePath(self.path('data', 'copy', 'input')))
+        d = t.listChildren()
+        def verify(got):
+            got = sets.ImmutableSet(got)
+            want = sets.ImmutableSet(['something.css'])
+            self.assertEquals(got, want)
+        d.addCallback(verify)
+        return d
+
 class Export(unittest.TestCase, _PathMixin):
     def verify(self, got, want):
-        d = utils.getProcessOutputAndValue(
-            'xmldiff',
-            args=['-r', got, want])
+        def walk(path):
+            dirlist = []
+            filelist = []
+            for root, dirs, files in os.walk(path):
+                assert root == path or root.startswith(path+'/')
+                relative = root[len(path+'/'):]
+                for name in dirs:
+                    dirlist.append(os.path.join(relative, name))
+                for name in files:
+                    filelist.append(os.path.join(relative, name))
+            return sorted(dirlist), sorted(filelist)
 
-        def cb((out, err, code)):
-            if err or code!=0:
-                l = ["Directories are not equal according to xmldiff."]
-                for line in out.splitlines():
-                    l.append("%s" % line)
-                for line in err.splitlines():
-                    l.append("xmldiff error: %s" % line)
-                if code!=1:
-                    l.append("xmldiff exited with status %d" % code)
-                raise unittest.FailTest('\n'.join(l))
+        got_dirs, got_files = walk(got)
+        want_dirs, want_files = walk(want)
+        self.assertEquals(got_dirs, want_dirs)
+        self.assertEquals(got_files, want_files)
 
-        d.addCallback(cb)
-        return d
+        for path in got_files:
+            base, ext = os.path.splitext(path)
+
+            if ext == '.html':
+                p = subprocess.Popen(
+                    args=[
+                        'xmldiff',
+                        '-r',
+                        os.path.join(got, path),
+                        os.path.join(want, path),
+                        ],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    )
+
+                (out, err) = p.communicate()
+                if err or p.returncode!=0:
+                    l = ["Directories are not equal according to xmldiff."]
+                    for line in out.splitlines():
+                        l.append("%s" % line)
+                    for line in err.splitlines():
+                        l.append("xmldiff error: %s" % line)
+                    if p.returncode!=1:
+                        l.append("xmldiff exited with status %d" % p.returncode)
+                    raise unittest.FailTest('\n'.join(l))
+
+            elif ext in ['.css']:
+                got_data = file(os.path.join(got, path), 'rb').read()
+                want_data = file(os.path.join(want, path), 'rb').read()
+                if got_data != want_data:
+                    raise unittest.FailTest('Files are not equal: %s' % path)
+
+            else:
+                raise unittest.FailTest('Unknown file extension: %s' % path)
 
     def test_simple(self):
         t = tree.Tree(filepath.FilePath(self.path('data', 'simple', 'input')))
@@ -82,4 +127,12 @@ class Export(unittest.TestCase, _PathMixin):
         os.mkdir(got)
         t.export(filepath.FilePath(got))
         d = self.verify(got, self.path('data', 'link-rewrite', 'output'))
+        return d
+
+    def test_copy(self):
+        t = tree.Tree(filepath.FilePath(self.path('data', 'copy', 'input')))
+        got = self.mktemp()
+        os.mkdir(got)
+        t.export(filepath.FilePath(got))
+        d = self.verify(got, self.path('data', 'copy', 'output'))
         return d

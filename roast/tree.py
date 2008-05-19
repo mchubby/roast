@@ -58,6 +58,9 @@ class Tree(object):
         html = tree.toxml('utf-8')
         dst.setContent(html)
 
+    def _exportFileByCopy(self, src, dst):
+        src.copyTo(dst)
+
     def export(self, destination, depth=0):
         assert isinstance(destination, filepath.FilePath)
 
@@ -74,10 +77,15 @@ class Tree(object):
                 dstDir.createDirectory()
                 t.export(dstDir, depth=depth+1)
             else:
-                dstFile = destination.child(childName).siblingExtension('.html')
-                child = child.siblingExtension('.rst')
-                if child.isfile():
-                    self._exportFile(child, dstFile, depth=depth)
+                base, ext = os.path.splitext(child.basename())
+                if ext == '':
+                    dstFile = destination.child(childName).siblingExtension('.html')
+                    child = child.siblingExtension('.rst')
+                    if child.isfile():
+                        self._exportFile(child, dstFile, depth=depth)
+                elif ext in ['.css']:
+                    dstFile = destination.child(childName)
+                    self._exportFileByCopy(child, dstFile)
 
     def listChildren(self):
         d = defer.maybeDeferred(self._listChildren)
@@ -100,6 +108,8 @@ class Tree(object):
                     # index is implicitly used by the parent resource
                     continue
                 yield base
+            elif ext in ['.css']:
+                yield name
             elif ext == '':
                 child = self.path.child(name)
                 if child.isdir():
