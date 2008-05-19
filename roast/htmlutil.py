@@ -52,9 +52,12 @@ def killGeneratorMetaTags(tree):
         if name == 'generator':
             head.removeChild(meta)
 
+KLUDGE_KILL_CSS = '___roast_kludge__kill_this_style.css'
 def killLinkedStylesheet(tree):
     head = getHead(tree)
     for meta in head.getElementsByTagName('link'):
         type_ = meta.getAttribute('type')
         if type_ == 'text/css':
-            head.removeChild(meta)
+            href = meta.getAttribute('href')
+            if href == KLUDGE_KILL_CSS:
+                head.removeChild(meta)

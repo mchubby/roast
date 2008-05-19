@@ -36,6 +36,7 @@ def asDOM(text, template=None):
         input_encoding='utf-8',
         output_encoding='utf-8',
         embed_stylesheet=False,
+        stylesheet_path=htmlutil.KLUDGE_KILL_CSS,
         generator=False,
         )
 
