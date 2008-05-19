@@ -1,7 +1,6 @@
 from twisted.trial import unittest
 
 import sys, os
-from xml.dom import minidom
 
 from twisted.internet import utils
 
