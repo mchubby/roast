@@ -32,6 +32,13 @@ class Template(rend.Fragment):
                                  self.title)
 
 def asDOM(text, template=None):
+    settings = dict(
+        input_encoding='utf-8',
+        output_encoding='utf-8',
+        embed_stylesheet=False,
+        generator=False,
+        )
+
     html, publisher = publish_programmatically(
         source_class=io.StringInput,
         source=text,
@@ -47,12 +54,7 @@ def asDOM(text, template=None):
         writer_name=None,
         settings=None,
         settings_spec=None,
-        settings_overrides=dict(
-            input_encoding='utf-8',
-            output_encoding='utf-8',
-            embed_stylesheet=False,
-            generator=False,
-            ),
+        settings_overrides=settings,
         config_section=None,
         enable_exit_status=None)
 
