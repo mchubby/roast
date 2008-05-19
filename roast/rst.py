@@ -88,7 +88,3 @@ def asDOM(text, template=None):
         tree = minidom.parseString(html)
 
     return tree
-
-def asHTML(text, template=None):
-    tree = asDOM(text, template=template)
-    return tree.toxml('utf-8')

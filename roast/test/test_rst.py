@@ -6,20 +6,22 @@ from roast.test import util
 class HTML(unittest.TestCase, util.TestFormattingMixin):
     def test_simple(self):
         src = self.slurp('data', 'simple', 'input', 'index.rst')
-        got = rst.asHTML(src)
+        dom = rst.asDOM(src)
+        got = dom.toxml('utf-8')
         d = self.verify(got, 'data', 'simple', 'output', 'index.html')
         return d
 
     def test_template(self):
         src = self.slurp('data', 'with-template', 'input', 'index.rst')
         template = self.slurp('data', 'with-template', 'input', '_template.html')
-        got = rst.asHTML(src, template=template)
-
+        dom = rst.asDOM(src, template=template)
+        got = dom.toxml('utf-8')
         d = self.verify(got, 'data', 'with-template', 'output', 'index.html')
         return d
 
     def test_entities(self):
         src = self.slurp('data', 'entities', 'input', 'index.rst')
-        got = rst.asHTML(src)
+        dom = rst.asDOM(src)
+        got = dom.toxml('utf-8')
         d = self.verify(got, 'data', 'entities', 'output', 'index.html')
         return d
