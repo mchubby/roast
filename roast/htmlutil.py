@@ -61,3 +61,29 @@ def killLinkedStylesheet(tree):
             href = meta.getAttribute('href')
             if href == KLUDGE_KILL_CSS:
                 head.removeChild(meta)
+
+def fixXMLTags(tree):
+    """
+    Fix XML-style tags where old-school HTML browsers
+    just don't want to see them.
+
+    E.g. this::
+
+	<script ... />
+
+    becomes this::
+
+	<script ...></script>
+
+    or a rought equivalent.
+
+    This is a horrible kludge while I'm waiting for
+    lxml 2.0, and lxml.html, to hit stable distros.
+    """
+    work=list(tree.childNodes)
+    while len(work)>0:
+        tag = work.pop(0)
+        if tag.nodeType == tag.ELEMENT_NODE:
+            if not tag.childNodes:
+                tag.appendChild(tree.createTextNode(''))
+        work[:0] = tag.childNodes

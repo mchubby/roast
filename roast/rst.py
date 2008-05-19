@@ -90,4 +90,5 @@ def asDOM(text, template=None):
         html = flat.flatten(template)
         tree = minidom.parseString(html)
 
+    htmlutil.fixXMLTags(tree)
     return tree
