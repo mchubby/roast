@@ -1,4 +1,5 @@
 import os
+import re
 from zope.interface import implements
 
 from twisted.internet import defer
@@ -46,12 +47,22 @@ class Tree(object):
             work[:0] = node.childNodes
 
     def _exportFile(self, src, dst, depth):
-        template = self.lookUp(src.parent(), '_template.html')
-        if template is not None:
-            template = template.getContent()
-
         text = src.getContent()
-        tree = rst.asDOM(text, template=template)
+        kwargs = {}
+        if re.search(
+            r'^\.\.\s+include::\s+<s5defs.txt>\s*$',
+            text,
+            flags=re.MULTILINE,
+            ):
+            kwargs['flavor'] = 's5'
+            kwargs['s5_theme_url'] = '/s5-themes/medium-white' #TODO
+        else:
+            kwargs['flavor'] = 'html'
+            template = self.lookUp(src.parent(), '_template.html')
+            if template is not None:
+                kwargs['template'] = template.getContent()
+
+        tree = rst.asDOM(text, **kwargs)
 
         self._fixLinks(tree, depth)
 
