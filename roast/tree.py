@@ -1,16 +1,14 @@
 import errno
 import os
 import re
+import shutil
 import ConfigParser
 from zope.interface import implements
-
-from twisted.python import filepath
 
 from roast import rst
 
 class Tree(object):
     def __init__(self, path, _root=None):
-        assert isinstance(path, filepath.FilePath)
         self.path = path
         if _root is None:
             _root = path
@@ -19,9 +17,9 @@ class Tree(object):
 
     def _read_config(self):
         cfg = ConfigParser.RawConfigParser()
-        path = self.root.child('_roast.conf')
+        path = os.path.join(self.root, '_roast.conf')
         try:
-            f = path.open()
+            f = file(path)
         except IOError, e:
             if e.errno == errno.ENOENT:
                 pass
@@ -37,13 +35,13 @@ class Tree(object):
 
     def lookUp(self, path, filename):
         while True:
-            c = path.child(filename)
-            if c.isfile():
+            c = os.path.join(path, filename)
+            if os.path.isfile(c):
                 return c
             if path == self.root:
                 break
 
-            path = path.parent()
+            path = os.path.dirname(path)
 
     def _fixLinks(self, tree, depth):
         assert depth >= 0
@@ -63,7 +61,11 @@ class Tree(object):
             work[:0] = node.childNodes
 
     def _exportFile(self, src, dst, depth):
-        text = src.getContent()
+        f = file(src)
+        try:
+            text = f.read()
+        finally:
+            f.close()
         kwargs = {}
         if re.search(
             r'^\.\.\s+include::\s+<s5defs.txt>\s*$',
@@ -71,8 +73,8 @@ class Tree(object):
             flags=re.MULTILINE,
             ):
             kwargs['flavor'] = 's5'
-            assert src.path.startswith(self.root.path + '/')
-            relative = src.path[len(self.root.path + '/'):]
+            assert src.startswith(self.root + '/')
+            relative = src[len(self.root + '/'):]
             try:
                 theme = self.config.get(
                     section='file %s' % relative,
@@ -86,41 +88,49 @@ class Tree(object):
             kwargs['s5_theme_url'] = theme
         else:
             kwargs['flavor'] = 'html'
-            template = self.lookUp(src.parent(), '_template.html')
+            template = self.lookUp(os.path.dirname(src), '_template.html')
             if template is not None:
-                kwargs['template'] = template.getContent()
+                f = file(template)
+                try:
+                    kwargs['template'] = f.read()
+                finally:
+                    f.close()
 
         tree = rst.asDOM(text, **kwargs)
 
         self._fixLinks(tree, depth)
 
         html = tree.toxml('utf-8')
-        dst.setContent(html)
+        tmp = '%s.tmp' % dst
+        f = file(tmp, 'w')
+        try:
+            f.write(html)
+        finally:
+            f.close()
+        os.rename(tmp, dst)
 
     def _exportFileByCopy(self, src, dst):
-        src.copyTo(dst)
+        shutil.copyfile(src, dst)
 
     def export(self, destination, depth=0):
-        assert isinstance(destination, filepath.FilePath)
-
-        index = self.path.child('index.rst')
-        if index.isfile():
-            self._exportFile(index, destination.child('index.html'), depth=depth)
+        index = os.path.join(self.path, 'index.rst')
+        if os.path.isfile(index):
+            self._exportFile(index, os.path.join(destination, 'index.html'), depth=depth)
 
         for childName in self.listChildren():
-            child = self.path.child(childName)
+            child = os.path.join(self.path, childName)
 
-            if child.isdir():
+            if os.path.isdir(child):
                 t = self.__class__(child, _root=self.root)
-                dstDir = destination.child(childName)
-                dstDir.createDirectory()
+                dstDir = os.path.join(destination, childName)
+                os.mkdir(dstDir)
                 t.export(dstDir, depth=depth+1)
             else:
-                base, ext = os.path.splitext(child.basename())
+                base, ext = os.path.splitext(childName)
                 if ext == '':
-                    dstFile = destination.child(childName).siblingExtension('.html')
-                    child = child.siblingExtension('.rst')
-                    if child.isfile():
+                    dstFile = os.path.join(destination, base+'.html')
+                    child = child+'.rst'
+                    if os.path.isfile(child):
                         self._exportFile(child, dstFile, depth=depth)
                 elif ext in [
                     '.css',
@@ -131,11 +141,11 @@ class Tree(object):
                     '.png',
                     '.txt',
                     ]:
-                    dstFile = destination.child(childName)
+                    dstFile = os.path.join(destination, childName)
                     self._exportFileByCopy(child, dstFile)
 
     def listChildren(self):
-        for name in self.path.listdir():
+        for name in os.listdir(self.path):
             if (name.startswith('.')
                 or name.startswith('_')
                 or name.startswith('#')
@@ -161,6 +171,6 @@ class Tree(object):
                 ]:
                 yield name
             elif ext == '':
-                child = self.path.child(name)
-                if child.isdir():
+                child = os.path.join(self.path, name)
+                if os.path.isdir(child):
                     yield name

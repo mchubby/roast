@@ -4,7 +4,6 @@ import optparse
 import os
 import sys
 
-from twisted.python import filepath
 from roast import tree
 
 def main():
@@ -17,7 +16,6 @@ def main():
     except ValueError:
         parser.error('Expected exactly two arguments.')
 
-    source = filepath.FilePath(source)
     try:
         os.mkdir(dest)
     except OSError, e:
@@ -29,7 +27,6 @@ def main():
         else:
             raise
 
-    dest = filepath.FilePath(dest)
     t = tree.Tree(path=source)
     t.export(dest)
 
