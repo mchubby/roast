@@ -1,7 +1,75 @@
-from twisted.trial import unittest
+from nose.tools import (
+    eq_ as eq,
+    )
 
-import sys, os
+import errno
+import os
+import shutil
 import subprocess
+import sys
+
+def find_test_name():
+    try:
+        from nose.case import Test
+        from nose.suite import ContextSuite
+        import types
+        def get_nose_name(its_self):
+            if isinstance(its_self, Test):
+                file_, module, class_ = its_self.address()
+                name = '%s:%s' % (module, class_)
+                return name
+            elif isinstance(its_self, ContextSuite):
+                if isinstance(its_self.context, types.ModuleType):
+                    return its_self.context.__name__
+    except ImportError:
+        # older nose
+        from nose.case import FunctionTestCase, MethodTestCase
+        from nose.suite import TestModule
+        from nose.util import test_address
+        def get_nose_name(its_self):
+            if isinstance(its_self, (FunctionTestCase, MethodTestCase)):
+                file_, module, class_ = test_address(its_self)
+                name = '%s:%s' % (module, class_)
+                return name
+            elif isinstance(its_self, TestModule):
+                return its_self.moduleName
+
+    i = 0
+    while True:
+        i += 1
+        frame = sys._getframe(i)
+        # kludge, hunt callers upwards until we find our nose
+        if (frame.f_code.co_varnames
+            and frame.f_code.co_varnames[0] == 'self'):
+            its_self = frame.f_locals['self']
+            name = get_nose_name(its_self)
+            if name is not None:
+                return name
+
+def mkdir(*a, **kw):
+    try:
+        os.mkdir(*a, **kw)
+    except OSError, e:
+        if e.errno == errno.EEXIST:
+            pass
+        else:
+            raise
+
+def maketemp():
+    tmp = os.path.join(os.path.dirname(__file__), 'tmp')
+    mkdir(tmp)
+
+    name = find_test_name()
+    tmp = os.path.join(tmp, name)
+    try:
+        shutil.rmtree(tmp)
+    except OSError, e:
+        if e.errno == errno.ENOENT:
+            pass
+        else:
+            raise
+    os.mkdir(tmp)
+    return tmp
 
 def compare_files(got, want):
     base, ext = os.path.splitext(got)
@@ -26,13 +94,16 @@ def compare_files(got, want):
                 l.append("xmldiff error: %s" % line)
             if p.returncode!=1:
                 l.append("xmldiff exited with status %d" % p.returncode)
-            raise unittest.FailTest('\n'.join(l))
+            raise AssertionError('\n'.join(l))
 
     else:
         got_data = file(got, 'rb').read()
         want_data = file(want, 'rb').read()
-        if got_data != want_data:
-            raise unittest.FailTest('Files are not equal: %s' % got)
+        eq(
+            got_data,
+            want_data,
+            'Files are not equal: %s' % got,
+            )
 
 class TestFormattingMixin(object):
     def path(self, *segments):
@@ -52,9 +123,8 @@ class TestFormattingMixin(object):
         return data
 
     def verify(self, got, *segments):
-        path = self.mktemp()
-        os.mkdir(path)
-        path = os.path.join(path, 'got.html')
+        tmp = maketemp()
+        path = os.path.join(tmp, 'got.html')
         f = file(path, 'w')
         f.write(got)
         f.close()

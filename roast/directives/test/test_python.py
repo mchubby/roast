@@ -1,9 +1,7 @@
-from twisted.trial import unittest
-
 from roast import rst
 from roast.test import util
 
-class Python(unittest.TestCase, util.TestFormattingMixin):
+class Python_Test(util.TestFormattingMixin):
     def test_simple(self):
         src = self.slurp('data', 'python', 'input', 'index.rst')
         dom = rst.asDOM(src)

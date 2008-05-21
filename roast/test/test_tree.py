@@ -1,9 +1,12 @@
-from twisted.trial import unittest
+from nose.tools import eq_ as eq
 
 import os, sets
 
 from roast import tree
-from roast.test.util import compare_files
+from roast.test.util import (
+    compare_files,
+    maketemp,
+    )
 
 class _PathMixin(object):
     def path(self, *segments):
@@ -11,19 +14,19 @@ class _PathMixin(object):
         path = os.path.join(path, *segments)
         return path
 
-class Navigation(unittest.TestCase, _PathMixin):
+class Navigation_Test(_PathMixin):
     def test_simple_list(self):
         t = tree.Tree(self.path('data', 'simple', 'input'))
         got = t.listChildren()
         got = list(got)
-        self.assertEquals(got, [])
+        eq(got, [])
 
     def test_template_list(self):
         t = tree.Tree(self.path('data', 'with-template', 'input'))
         got = t.listChildren()
         got = sets.ImmutableSet(got)
         want = sets.ImmutableSet(['one', 'two'])
-        self.assertEquals(got, want)
+        eq(got, want)
 
     def test_misc_files(self):
         t = tree.Tree(self.path('data', 'copy', 'input'))
@@ -37,9 +40,9 @@ class Navigation(unittest.TestCase, _PathMixin):
                 'boring.txt',
                 'another.jpg',
                 ])
-        self.assertEquals(got, want)
+        eq(got, want)
 
-class Export(unittest.TestCase, _PathMixin):
+class Export_Test(_PathMixin):
     def verify(self, got, want):
         def walk(path):
             dirlist = []
@@ -55,8 +58,8 @@ class Export(unittest.TestCase, _PathMixin):
 
         got_dirs, got_files = walk(got)
         want_dirs, want_files = walk(want)
-        self.assertEquals(got_dirs, want_dirs)
-        self.assertEquals(got_files, want_files)
+        eq(got_dirs, want_dirs)
+        eq(got_files, want_files)
 
         for path in got_files:
             compare_files(
@@ -67,42 +70,36 @@ class Export(unittest.TestCase, _PathMixin):
 
     def test_simple(self):
         t = tree.Tree(self.path('data', 'simple', 'input'))
-        got = self.mktemp()
-        os.mkdir(got)
-        t.export(got)
-        self.verify(got, self.path('data', 'simple', 'output'))
+        tmp = maketemp()
+        t.export(tmp)
+        self.verify(tmp, self.path('data', 'simple', 'output'))
 
     def test_template(self):
         t = tree.Tree(self.path('data', 'with-template', 'input'))
-        got = self.mktemp()
-        os.mkdir(got)
-        t.export(got)
-        self.verify(got, self.path('data', 'with-template', 'output'))
+        tmp = maketemp()
+        t.export(tmp)
+        self.verify(tmp, self.path('data', 'with-template', 'output'))
 
     def test_link_rewrite(self):
         t = tree.Tree(self.path('data', 'link-rewrite', 'input'))
-        got = self.mktemp()
-        os.mkdir(got)
-        t.export(got)
-        self.verify(got, self.path('data', 'link-rewrite', 'output'))
+        tmp = maketemp()
+        t.export(tmp)
+        self.verify(tmp, self.path('data', 'link-rewrite', 'output'))
 
     def test_copy(self):
         t = tree.Tree(self.path('data', 'copy', 'input'))
-        got = self.mktemp()
-        os.mkdir(got)
-        t.export(got)
-        self.verify(got, self.path('data', 'copy', 'output'))
+        tmp = maketemp()
+        t.export(tmp)
+        self.verify(tmp, self.path('data', 'copy', 'output'))
 
     def test_s5(self):
         t = tree.Tree(self.path('data', 's5', 'input'))
-        got = self.mktemp()
-        os.mkdir(got)
-        t.export(got)
-        self.verify(got, self.path('data', 's5', 'output'))
+        tmp = maketemp()
+        t.export(tmp)
+        self.verify(tmp, self.path('data', 's5', 'output'))
 
     def test_s5_theme(self):
         t = tree.Tree(self.path('data', 's5-theme', 'input'))
-        got = self.mktemp()
-        os.mkdir(got)
-        t.export(got)
-        self.verify(got, self.path('data', 's5-theme', 'output'))
+        tmp = maketemp()
+        t.export(tmp)
+        self.verify(tmp, self.path('data', 's5-theme', 'output'))
