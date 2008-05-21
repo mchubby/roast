@@ -17,39 +17,30 @@ class _PathMixin(object):
 class Navigation(unittest.TestCase, _PathMixin):
     def test_simple_list(self):
         t = tree.Tree(filepath.FilePath(self.path('data', 'simple', 'input')))
-        d = t.listChildren()
-        def verify(got):
-            want = []
-            self.assertEquals(got, want)
-        d.addCallback(verify)
-        return d
+        got = t.listChildren()
+        got = list(got)
+        self.assertEquals(got, [])
 
     def test_template_list(self):
         t = tree.Tree(filepath.FilePath(self.path('data', 'with-template', 'input')))
-        d = t.listChildren()
-        def verify(got):
-            got = sets.ImmutableSet(got)
-            want = sets.ImmutableSet(['one', 'two'])
-            self.assertEquals(got, want)
-        d.addCallback(verify)
-        return d
+        got = t.listChildren()
+        got = sets.ImmutableSet(got)
+        want = sets.ImmutableSet(['one', 'two'])
+        self.assertEquals(got, want)
 
     def test_misc_files(self):
         t = tree.Tree(filepath.FilePath(self.path('data', 'copy', 'input')))
-        d = t.listChildren()
-        def verify(got):
-            got = sets.ImmutableSet(got)
-            want = sets.ImmutableSet([
-                    'something.css',
-                    'scripts.js',
-                    'picture.png',
-                    'ie-hacks.htc',
-                    'boring.txt',
-                    'another.jpg',
-                    ])
-            self.assertEquals(got, want)
-        d.addCallback(verify)
-        return d
+        got = t.listChildren()
+        got = sets.ImmutableSet(got)
+        want = sets.ImmutableSet([
+                'something.css',
+                'scripts.js',
+                'picture.png',
+                'ie-hacks.htc',
+                'boring.txt',
+                'another.jpg',
+                ])
+        self.assertEquals(got, want)
 
 class Export(unittest.TestCase, _PathMixin):
     def verify(self, got, want):

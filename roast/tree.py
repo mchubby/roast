@@ -4,7 +4,6 @@ import re
 import ConfigParser
 from zope.interface import implements
 
-from twisted.internet import defer
 from twisted.python import filepath
 
 from roast import rst
@@ -108,7 +107,7 @@ class Tree(object):
         if index.isfile():
             self._exportFile(index, destination.child('index.html'), depth=depth)
 
-        for childName in self._listChildren():
+        for childName in self.listChildren():
             child = self.path.child(childName)
 
             if child.isdir():
@@ -136,11 +135,6 @@ class Tree(object):
                     self._exportFileByCopy(child, dstFile)
 
     def listChildren(self):
-        d = defer.maybeDeferred(self._listChildren)
-        d.addCallback(list)
-        return d
-
-    def _listChildren(self):
         for name in self.path.listdir():
             if (name.startswith('.')
                 or name.startswith('_')
