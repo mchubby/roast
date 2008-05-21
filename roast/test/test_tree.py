@@ -1,12 +1,12 @@
 from twisted.trial import unittest
 
 import os, sets
-import subprocess
 
 from twisted.internet import utils
 from twisted.python import filepath
 
 from roast import tree
+from roast.test.util import compare_files
 
 class _PathMixin(object):
     def path(self, *segments):
@@ -62,36 +62,11 @@ class Export(unittest.TestCase, _PathMixin):
         self.assertEquals(got_files, want_files)
 
         for path in got_files:
-            base, ext = os.path.splitext(path)
+            compare_files(
+                got=os.path.join(got, path),
+                want=os.path.join(want, path),
+                )
 
-            if ext == '.html':
-                p = subprocess.Popen(
-                    args=[
-                        'xmldiff',
-                        '-r',
-                        os.path.join(got, path),
-                        os.path.join(want, path),
-                        ],
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE,
-                    )
-
-                (out, err) = p.communicate()
-                if err or p.returncode!=0:
-                    l = ["Directories are not equal according to xmldiff."]
-                    for line in out.splitlines():
-                        l.append("%s" % line)
-                    for line in err.splitlines():
-                        l.append("xmldiff error: %s" % line)
-                    if p.returncode!=1:
-                        l.append("xmldiff exited with status %d" % p.returncode)
-                    raise unittest.FailTest('\n'.join(l))
-
-            else:
-                got_data = file(os.path.join(got, path), 'rb').read()
-                want_data = file(os.path.join(want, path), 'rb').read()
-                if got_data != want_data:
-                    raise unittest.FailTest('Files are not equal: %s' % path)
 
     def test_simple(self):
         t = tree.Tree(filepath.FilePath(self.path('data', 'simple', 'input')))
