@@ -6,8 +6,6 @@ import subprocess
 from twisted.internet import utils
 from twisted.python import filepath
 
-from webut.navi import inavi
-
 from roast import tree
 
 class _PathMixin(object):
@@ -17,11 +15,6 @@ class _PathMixin(object):
         return path
 
 class Navigation(unittest.TestCase, _PathMixin):
-    def test_interface(self):
-        t = tree.Tree(filepath.FilePath(self.path('data', 'simple', 'input')))
-        self.failUnless(inavi.INavigable.providedBy(t), "Tree must implement INavigable")
-        inavi.INavigable.validateInvariants(t)
-
     def test_simple_list(self):
         t = tree.Tree(filepath.FilePath(self.path('data', 'simple', 'input')))
         d = t.listChildren()

@@ -7,13 +7,9 @@ from zope.interface import implements
 from twisted.internet import defer
 from twisted.python import filepath
 
-from webut.navi import inavi
-
 from roast import rst
 
 class Tree(object):
-    implements(inavi.INavigable)
-
     def __init__(self, path, _root=None):
         assert isinstance(path, filepath.FilePath)
         self.path = path
