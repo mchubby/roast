@@ -8,5 +8,4 @@ class Comment(unittest.TestCase, util.TestFormattingMixin):
         src = self.slurp('data', 'comment', 'input', 'index.rst')
         dom = rst.asDOM(src)
         got = dom.toxml('utf-8')
-        d = self.verify(got, 'data', 'comment', 'output', 'index.html')
-        return d
+        self.verify(got, 'data', 'comment', 'output', 'index.html')
