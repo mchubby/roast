@@ -1,5 +1,7 @@
+import errno
 import os
 import re
+import ConfigParser
 from zope.interface import implements
 
 from twisted.internet import defer
@@ -18,6 +20,25 @@ class Tree(object):
         if _root is None:
             _root = path
         self.root = _root
+        self._read_config()
+
+    def _read_config(self):
+        cfg = ConfigParser.RawConfigParser()
+        path = self.root.child('_roast.conf')
+        try:
+            f = path.open()
+        except IOError, e:
+            if e.errno == errno.ENOENT:
+                pass
+            else:
+                raise
+        else:
+            try:
+                cfg.readfp(f)
+            finally:
+                f.close()
+
+        self.config = cfg
 
     def lookUp(self, path, filename):
         while True:
@@ -55,7 +76,19 @@ class Tree(object):
             flags=re.MULTILINE,
             ):
             kwargs['flavor'] = 's5'
-            kwargs['s5_theme_url'] = '/s5-themes/medium-white' #TODO
+            assert src.path.startswith(self.root.path + '/')
+            relative = src.path[len(self.root.path + '/'):]
+            try:
+                theme = self.config.get(
+                    section='file %s' % relative,
+                    option='s5-theme-url',
+                    )
+            except (
+                ConfigParser.NoSectionError,
+                ConfigParser.NoOptionError,
+                ):
+                theme = '/s5-themes/medium-white' #TODO
+            kwargs['s5_theme_url'] = theme
         else:
             kwargs['flavor'] = 'html'
             template = self.lookUp(src.parent(), '_template.html')

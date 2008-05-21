@@ -148,3 +148,11 @@ class Export(unittest.TestCase, _PathMixin):
         t.export(filepath.FilePath(got))
         d = self.verify(got, self.path('data', 's5', 'output'))
         return d
+
+    def test_s5_theme(self):
+        t = tree.Tree(filepath.FilePath(self.path('data', 's5-theme', 'input')))
+        got = self.mktemp()
+        os.mkdir(got)
+        t.export(filepath.FilePath(got))
+        d = self.verify(got, self.path('data', 's5-theme', 'output'))
+        return d
