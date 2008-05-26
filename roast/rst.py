@@ -18,6 +18,7 @@ comment.install()
 class Template(rend.Fragment):
     def __init__(self, **kw):
         self.title = kw.pop('title')
+        self.navigation = kw.pop('navigation')
         super(Template, self).__init__(**kw)
 
     def render_title(self, ctx, data):
@@ -26,6 +27,9 @@ class Template(rend.Fragment):
     def render_content(self, ctx, data):
         l = [tags.xml(node.toxml('utf-8')) for node in self.original.childNodes]
         return ctx.tag.clear()[l]
+
+    def data_navigation(self, ctx, data):
+        return self.navigation
 
     def __repr__(self):
         return '%s(title=%r)' % (self.__class__.__name__,
@@ -36,6 +40,7 @@ def asDOM(
     template=None,
     flavor=None,
     s5_theme_url=None,
+    navigation=None,
     ):
     if flavor is None:
         flavor = 'html'
@@ -109,6 +114,7 @@ def asDOM(
             template = Template(original=body,
                                 docFactory=loaders.xmlstr(template),
                                 title=title,
+                                navigation=navigation,
                                 )
             html = flat.flatten(template)
             tree = minidom.parseString(html)

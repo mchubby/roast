@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:nevow="http://nevow.com/ns/nevow/0.1"
+      xml:lang="fi">
+  <head>
+    <title>
+      <nevow:invisible nevow:render="title"/>
+    </title>
+  </head>
+  <body>
+    <h1>
+      <nevow:invisible nevow:render="title"/>
+    </h1>
+
+    <ul>
+      <nevow:invisible nevow:render="sequence"
+		       nevow:data="navigation">
+	<li nevow:pattern="item"
+	    nevow:render="mapping">
+	  <a>
+	    <nevow:attr name="href"><nevow:slot name="link"/></nevow:attr>
+	    <span class="header"><nevow:slot name="title"/></span>
+	    <nevow:slot name="description"/>
+	  </a>
+	</li>
+      </nevow:invisible>
+    </ul>
+
+    <div nevow:render="content"/>
+  </body>
+</html>

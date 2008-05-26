@@ -103,3 +103,9 @@ class Export_Test(_PathMixin):
         tmp = maketemp()
         t.export(tmp)
         self.verify(tmp, self.path('data', 's5-theme', 'output'))
+
+    def test_navigation(self):
+        t = tree.Tree(self.path('data', 'navigation', 'input'))
+        tmp = maketemp()
+        t.export(tmp)
+        self.verify(tmp, self.path('data', 'navigation', 'output'))

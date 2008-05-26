@@ -5,15 +5,18 @@ import shutil
 import ConfigParser
 from zope.interface import implements
 
-from roast import rst
+from roast import rst, explicit_navi
 
 class Tree(object):
-    def __init__(self, path, _root=None):
+    def __init__(self, path, _root=None, _navigation=None):
         self.path = path
         if _root is None:
             _root = path
         self.root = _root
         self._read_config()
+        if _navigation is None:
+            _navigation = list(self._read_navigation())
+        self.navigation = _navigation
 
     def _read_config(self):
         cfg = ConfigParser.RawConfigParser()
@@ -32,6 +35,21 @@ class Tree(object):
                 f.close()
 
         self.config = cfg
+
+    def _read_navigation(self):
+        try:
+            f = file(os.path.join(self.root, '_navigation.rst'))
+        except IOError, e:
+            if e.errno == errno.ENOENT:
+                return []
+            else:
+                raise
+        else:
+            try:
+                text = f.read()
+            finally:
+                f.close()
+            return explicit_navi.get_navigation(text=text)
 
     def lookUp(self, path, filename):
         while True:
@@ -66,7 +84,9 @@ class Tree(object):
             text = f.read()
         finally:
             f.close()
-        kwargs = {}
+        kwargs = dict(
+            navigation=self.navigation,
+            )
         if re.search(
             r'^\.\.\s+include::\s+<s5defs.txt>\s*$',
             text,
@@ -121,7 +141,11 @@ class Tree(object):
             child = os.path.join(self.path, childName)
 
             if os.path.isdir(child):
-                t = self.__class__(child, _root=self.root)
+                t = self.__class__(
+                    child,
+                    _root=self.root,
+                    _navigation=self.navigation,
+                    )
                 dstDir = os.path.join(destination, childName)
                 os.mkdir(dstDir)
                 t.export(dstDir, depth=depth+1)
