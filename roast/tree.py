@@ -135,7 +135,11 @@ class Tree(object):
     def export(self, destination, depth=0):
         index = os.path.join(self.path, 'index.rst')
         if os.path.isfile(index):
-            self._exportFile(index, os.path.join(destination, 'index.html'), depth=depth)
+            self._exportFile(
+                src=index,
+                dst=os.path.join(destination, 'index.html'),
+                depth=depth,
+                )
 
         for childName in self.listChildren():
             child = os.path.join(self.path, childName)
@@ -155,7 +159,11 @@ class Tree(object):
                     dstFile = os.path.join(destination, base+'.html')
                     child = child+'.rst'
                     if os.path.isfile(child):
-                        self._exportFile(child, dstFile, depth=depth)
+                        self._exportFile(
+                            src=child,
+                            dst=dstFile,
+                            depth=depth,
+                            )
                 elif ext in [
                     '.css',
                     '.gif',
