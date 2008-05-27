@@ -87,7 +87,10 @@ def compare_files(got, want):
 
         (out, err) = p.communicate()
         if err or p.returncode!=0:
-            l = ["Directories are not equal according to xmldiff."]
+            l = ["Files are not equal according to xmldiff:",
+                 "got  %s" % got,
+                 "want %s" % want,
+                 ]
             for line in out.splitlines():
                 l.append("%s" % line)
             for line in err.splitlines():
