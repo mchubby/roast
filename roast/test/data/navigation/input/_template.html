@@ -22,6 +22,10 @@
 	    nevow:render="mapping">
 	  <a>
 	    <nevow:attr name="href"><nevow:slot name="link"/></nevow:attr>
+	    <nevow:attr name="class" nevow:render="if" nevow:data="current">
+	      <nevow:invisible nevow:pattern="True">current</nevow:invisible>
+	      <nevow:invisible nevow:pattern="False">not-current</nevow:invisible>
+	    </nevow:attr>
 	    <span class="header"><nevow:slot name="title"/></span>
 	    <nevow:slot name="description"/>
 	  </a>

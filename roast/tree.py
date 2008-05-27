@@ -5,7 +5,7 @@ import shutil
 import ConfigParser
 from zope.interface import implements
 
-from roast import rst, explicit_navi
+from roast import rst, explicit_navi, navi_current
 
 class Tree(object):
     def __init__(self, path, _root=None, _navigation=None):
@@ -84,8 +84,27 @@ class Tree(object):
             text = f.read()
         finally:
             f.close()
-        kwargs = dict(
+        # TODO i shouldn't need to parse the relative path
+        # from src here, should probably just pass it in;
+        # same thing with ``relative`` below.
+
+        # src also has the annoying .rst extension here, but we want
+        # _navigation.rst (and later, other) links to be without that
+        # any extension, even more so not having .rst
+
+        # dir vs file confusion still at large, maybe see if dir
+        # exists first?
+        assert src.startswith(self.root + '/')
+        current = '/'+os.path.splitext(src[len(self.root + '/'):])[0]
+        # special case index.html; link points to dir itself
+        if current.endswith('/index'):
+            current = current[:-len('/index')]
+        navigation = navi_current.navi_mark_current(
             navigation=self.navigation,
+            current=current,
+            )
+        kwargs = dict(
+            navigation=navigation,
             )
         if re.search(
             r'^\.\.\s+include::\s+<s5defs.txt>\s*$',

@@ -28,6 +28,10 @@ class Template(rend.Fragment):
         l = [tags.xml(node.toxml('utf-8')) for node in self.original.childNodes]
         return ctx.tag.clear()[l]
 
+    def render_if(self, ctx, data):
+        r=ctx.tag.allPatterns(str(bool(data)))
+        return ctx.tag.clear()[r]
+
     def data_navigation(self, ctx, data):
         return self.navigation
 
