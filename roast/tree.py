@@ -5,7 +5,7 @@ import shutil
 import ConfigParser
 from zope.interface import implements
 
-from roast import rst, explicit_navi, navi_current
+from roast import rst, explicit_navi, navi_current, format_dot
 
 class Tree(object):
     def __init__(self, path, _root=None, _navigation=None):
@@ -183,6 +183,14 @@ class Tree(object):
                             dst=dstFile,
                             depth=depth,
                             )
+                elif ext == '.dot':
+                    pdf = os.path.join(destination, base+'.pdf')
+                    png = os.path.join(destination, base+'.png')
+                    format_dot.format_dot(
+                        dot=child,
+                        pdf=pdf,
+                        png=png,
+                        )
                 elif ext in [
                     '.css',
                     '.gif',
@@ -219,6 +227,8 @@ class Tree(object):
                 '.js',
                 '.png',
                 '.txt',
+
+                '.dot',
                 ]:
                 yield name
             elif ext == '':

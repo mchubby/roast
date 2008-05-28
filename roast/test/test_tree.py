@@ -109,3 +109,9 @@ class Export_Test(_PathMixin):
         tmp = maketemp()
         t.export(tmp)
         self.verify(tmp, self.path('data', 'navigation', 'output'))
+
+    def test_graphviz(self):
+        t = tree.Tree(self.path('data', 'graphviz', 'input'))
+        tmp = maketemp()
+        t.export(tmp)
+        self.verify(tmp, self.path('data', 'graphviz', 'output'))
