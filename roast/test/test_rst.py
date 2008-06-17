@@ -20,3 +20,12 @@ class HTML_Test(util.TestFormattingMixin):
         dom = rst.asDOM(src)
         got = dom.toxml('utf-8')
         self.verify(got, 'data', 'entities', 'output', 'index.html')
+
+    def test_subdir_include(self):
+        src = self.slurp('data', 'subdir-include', 'input', 'subdir', 'index.rst')
+        dom = rst.asDOM(
+            text=src,
+            source_path=self.path('data', 'subdir-include', 'input', 'subdir', 'index.rst')
+            )
+        got = dom.toxml('utf-8')
+        self.verify(got, 'data', 'subdir-include', 'output', 'subdir', 'index.html')

@@ -41,6 +41,7 @@ class Template(rend.Fragment):
 
 def asDOM(
     text,
+    source_path=None,
     template=None,
     flavor=None,
     s5_theme_url=None,
@@ -74,7 +75,7 @@ def asDOM(
     html, publisher = publish_programmatically(
         source_class=io.StringInput,
         source=text,
-        source_path=None,
+        source_path=source_path,
         destination_class=io.StringOutput,
         destination=None,
         destination_path=None,
