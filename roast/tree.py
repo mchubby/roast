@@ -5,7 +5,13 @@ import shutil
 import ConfigParser
 from zope.interface import implements
 
-from roast import rst, explicit_navi, navi_current, format_dot
+from roast import (
+    rst,
+    explicit_navi,
+    navi_current,
+    format_dot,
+    get_config,
+    )
 
 class Tree(object):
     def __init__(self, path, _root=None, _navigation=None):
@@ -166,8 +172,21 @@ class Tree(object):
                 os.mkdir(dstDir)
                 t.export(dstDir, depth=depth+1)
             else:
+                assert child.startswith(self.root + '/')
+                current = child[len(self.root + '/'):]
+
+                cfg = get_config.get_config(
+                    cfg=self.config,
+                    path=current,
+                    )
+                if cfg is None:
+                    continue
+                action = cfg.get('action')
+                if action is None:
+                    continue
                 base, ext = os.path.splitext(childName)
-                if ext == '.rst':
+
+                if action == 'rst':
                     dstFile = os.path.join(destination, base+'.html')
                     if os.path.isfile(child):
                         self._exportFile(
@@ -175,7 +194,7 @@ class Tree(object):
                             dst=dstFile,
                             depth=depth,
                             )
-                elif ext == '.dot':
+                elif action == 'graphviz-dot':
                     pdf = os.path.join(destination, base+'.pdf')
                     png = os.path.join(destination, base+'.png')
                     format_dot.format_dot(
@@ -183,17 +202,11 @@ class Tree(object):
                         pdf=pdf,
                         png=png,
                         )
-                elif ext in [
-                    '.css',
-                    '.gif',
-                    '.htc',
-                    '.jpg',
-                    '.js',
-                    '.png',
-                    '.txt',
-                    ]:
+                elif action == 'copy':
                     dstFile = os.path.join(destination, childName)
                     self._exportFileByCopy(child, dstFile)
+                else:
+                    raise RuntimeError('Unknown action: %r' % action)
 
     def listChildren(self):
         for name in os.listdir(self.path):
