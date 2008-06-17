@@ -115,3 +115,9 @@ class Export_Test(_PathMixin):
         tmp = maketemp()
         t.export(tmp)
         self.verify(tmp, self.path('data', 'graphviz', 'output'))
+
+    def test_subdir_include(self):
+        t = tree.Tree(self.path('data', 'subdir-include', 'input'))
+        tmp = maketemp()
+        t.export(tmp)
+        self.verify(tmp, self.path('data', 'subdir-include', 'output'))

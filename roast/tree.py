@@ -105,6 +105,7 @@ class Tree(object):
             )
         kwargs = dict(
             navigation=navigation,
+            source_path=src,
             )
         if re.search(
             r'^\.\.\s+include::\s+<s5defs.txt>\s*$',
