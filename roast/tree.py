@@ -153,14 +153,6 @@ class Tree(object):
         shutil.copyfile(src, dst)
 
     def export(self, destination, depth=0):
-        index = os.path.join(self.path, 'index.rst')
-        if os.path.isfile(index):
-            self._exportFile(
-                src=index,
-                dst=os.path.join(destination, 'index.html'),
-                depth=depth,
-                )
-
         for childName in self.listChildren():
             child = os.path.join(self.path, childName)
 
@@ -211,10 +203,6 @@ class Tree(object):
                 ):
                 continue
             if name.endswith('~'):
-                continue
-
-            if name == 'index.rst':
-                # index is implicitly used by the parent resource
                 continue
 
             yield name

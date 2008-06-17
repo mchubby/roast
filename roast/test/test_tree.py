@@ -19,13 +19,13 @@ class Navigation_Test(_PathMixin):
         t = tree.Tree(self.path('data', 'simple', 'input'))
         got = t.listChildren()
         got = list(got)
-        eq(got, [])
+        eq(got, ['index.rst'])
 
     def test_template_list(self):
         t = tree.Tree(self.path('data', 'with-template', 'input'))
         got = t.listChildren()
         got = sets.ImmutableSet(got)
-        want = sets.ImmutableSet(['one', 'two.rst'])
+        want = sets.ImmutableSet(['index.rst', 'one', 'two.rst'])
         eq(got, want)
 
     def test_misc_files(self):
