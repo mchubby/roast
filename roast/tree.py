@@ -217,21 +217,4 @@ class Tree(object):
                 # index is implicitly used by the parent resource
                 continue
 
-            base, ext = os.path.splitext(name)
-            if ext in [
-                '.rst',
-                '.css',
-                '.gif',
-                '.htc',
-                '.jpg',
-                '.js',
-                '.png',
-                '.txt',
-
-                '.dot',
-                ]:
-                yield name
-            elif ext == '':
-                child = os.path.join(self.path, name)
-                if os.path.isdir(child):
-                    yield name
+            yield name
