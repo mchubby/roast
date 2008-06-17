@@ -175,9 +175,8 @@ class Tree(object):
                 t.export(dstDir, depth=depth+1)
             else:
                 base, ext = os.path.splitext(childName)
-                if ext == '':
+                if ext == '.rst':
                     dstFile = os.path.join(destination, base+'.html')
-                    child = child+'.rst'
                     if os.path.isfile(child):
                         self._exportFile(
                             src=child,
@@ -219,7 +218,7 @@ class Tree(object):
                 if base == 'index':
                     # index is implicitly used by the parent resource
                     continue
-                yield base
+                yield name
             elif ext in [
                 '.css',
                 '.gif',
