@@ -213,13 +213,13 @@ class Tree(object):
             if name.endswith('~'):
                 continue
 
+            if name == 'index.rst':
+                # index is implicitly used by the parent resource
+                continue
+
             base, ext = os.path.splitext(name)
-            if ext == '.rst':
-                if base == 'index':
-                    # index is implicitly used by the parent resource
-                    continue
-                yield name
-            elif ext in [
+            if ext in [
+                '.rst',
                 '.css',
                 '.gif',
                 '.htc',
