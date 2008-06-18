@@ -205,6 +205,8 @@ class Tree(object):
                 elif action == 'copy':
                     dstFile = os.path.join(destination, childName)
                     self._exportFileByCopy(child, dstFile)
+                elif action == 'ignore':
+                    pass
                 else:
                     raise RuntimeError('Unknown action: %r' % action)
 

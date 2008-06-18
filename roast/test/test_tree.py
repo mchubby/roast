@@ -121,3 +121,9 @@ class Export_Test(_PathMixin):
         tmp = maketemp()
         t.export(tmp)
         self.verify(tmp, self.path('data', 'subdir-include', 'output'))
+
+    def test_ignore(self):
+        t = tree.Tree(self.path('data', 'ignore', 'input'))
+        tmp = maketemp()
+        t.export(tmp)
+        self.verify(tmp, self.path('data', 'ignore', 'output'))
