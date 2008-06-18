@@ -153,6 +153,7 @@ class Tree(object):
         f = file(tmp, 'w')
         try:
             f.write(html)
+            f.write('\n')
         finally:
             f.close()
         os.rename(tmp, dst)
