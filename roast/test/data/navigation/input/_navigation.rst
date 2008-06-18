@@ -7,7 +7,8 @@ One
 
 Bar
 
-Two
-===
+Another
+=======
+:link: two
 
 Quux

@@ -101,3 +101,65 @@ More text
             )
         assert_raises(StopIteration, g.next)
 
+    def test_link(self):
+        g = explicit_navi.get_navigation("""\
+==========
+Navigation
+==========
+
+Title1
+======
+:link: foo
+
+First text
+""")
+
+        got = g.next()
+        eq(
+            got,
+            dict(
+                link='/foo',
+                title='Title1',
+                description='First text',
+                ),
+            )
+        assert_raises(StopIteration, g.next)
+
+    def test_link_multiple(self):
+        g = explicit_navi.get_navigation("""\
+==========
+Navigation
+==========
+
+Title1
+======
+:link: foo
+
+First text
+
+Title2
+======
+:link: bar
+
+Second text
+""")
+
+        got = g.next()
+        eq(
+            got,
+            dict(
+                link='/foo',
+                title='Title1',
+                description='First text',
+                ),
+            )
+        got = g.next()
+        eq(
+            got,
+            dict(
+                link='/bar',
+                title='Title2',
+                description='Second text',
+                ),
+            )
+        assert_raises(StopIteration, g.next)
