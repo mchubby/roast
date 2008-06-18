@@ -13,3 +13,12 @@ class Python_Test(util.TestFormattingMixin):
         dom = rst.asDOM(src)
         got = dom.toxml('utf-8')
         self.verify(got, 'data', 'python-comment', 'output', 'index.html')
+
+    def test_include(self):
+        src = self.slurp('data', 'python-include', 'input', 'index.rst')
+        dom = rst.asDOM(
+            text=src,
+            source_path=self.path('data', 'python-include', 'input', 'index.rst')
+            )
+        got = dom.toxml('utf-8')
+        self.verify(got, 'data', 'python-include', 'output', 'index.html')
