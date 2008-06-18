@@ -10,6 +10,7 @@ from roast import (
     explicit_navi,
     navi_current,
     format_dot,
+    ordered_config_parser,
     get_config,
     )
 
@@ -25,7 +26,7 @@ class Tree(object):
         self.navigation = _navigation
 
     def _read_config(self):
-        cfg = ConfigParser.RawConfigParser()
+        cfg = ordered_config_parser.OrderedRawConfigParser()
         path = os.path.join(self.root, '_roast.conf')
         try:
             f = file(path)

@@ -127,3 +127,9 @@ class Export_Test(_PathMixin):
         tmp = maketemp()
         t.export(tmp)
         self.verify(tmp, self.path('data', 'ignore', 'output'))
+
+    def test_config_order(self):
+        t = tree.Tree(self.path('data', 'config-order', 'input'))
+        tmp = maketemp()
+        t.export(tmp)
+        self.verify(tmp, self.path('data', 'config-order', 'output'))
