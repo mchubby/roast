@@ -133,3 +133,9 @@ class Export_Test(_PathMixin):
         tmp = maketemp()
         t.export(tmp)
         self.verify(tmp, self.path('data', 'config-order', 'output'))
+
+    def test_dia(self):
+        t = tree.Tree(self.path('data', 'dia', 'input'))
+        tmp = maketemp()
+        t.export(tmp)
+        self.verify(tmp, self.path('data', 'dia', 'output'))

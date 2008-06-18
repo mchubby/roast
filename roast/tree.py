@@ -10,6 +10,7 @@ from roast import (
     explicit_navi,
     navi_current,
     format_dot,
+    export_dia,
     ordered_config_parser,
     get_config,
     )
@@ -206,6 +207,12 @@ class Tree(object):
                 elif action == 'copy':
                     dstFile = os.path.join(destination, childName)
                     self._exportFileByCopy(child, dstFile)
+                elif action == 'dia':
+                    png = os.path.join(destination, base+'.png')
+                    export_dia.export_dia(
+                        dia=child,
+                        png=png,
+                        )
                 elif action == 'ignore':
                     pass
                 else:
