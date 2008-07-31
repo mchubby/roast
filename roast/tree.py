@@ -55,24 +55,30 @@ class Tree(object):
             return explicit_navi.get_navigation(text=text)
 
     def export(self, destination):
-        for childName in self.listChildren():
-            child = os.path.join(self.path, childName)
+        def safe_names(names):
+            return [
+                name
+                for name in names
+                if not (name.startswith('.')
+                        or name.startswith('_')
+                        or name.startswith('#')
+                        )
+                and not name.endswith('~')
+                ]
 
-            if os.path.isdir(child):
-                t = self.__class__(
-                    child,
-                    _root=self.root,
-                    _navigation=self.navigation,
-                    )
-                dstDir = os.path.join(destination, childName)
-                os.mkdir(dstDir)
-                t.export(dstDir)
+        for dirpath, dirnames, filenames in os.walk(self.path):
+            dirnames[:] = safe_names(dirnames)
+            filenames[:] = safe_names(filenames)
+
+            if dirpath == self.root:
+                relative_dir = ''
             else:
-                assert child.startswith(self.root + '/')
-                current = child[len(self.root + '/'):]
-                dst_root = destination
-                if current.count('/') > 0:
-                    dst_root = '/'.join(destination.split('/')[:-current.count('/')])
+                assert dirpath.startswith(self.root + '/')
+                relative_dir = dirpath[len(self.root)+1:]
+                os.mkdir(os.path.join(destination, relative_dir))
+
+            for filename in filenames:
+                current = os.path.join(relative_dir, filename)
 
                 cfg = get_config.get_config(
                     cfg=self.config,
@@ -103,22 +109,10 @@ class Tree(object):
                         config=self.config,
                         src_root=self.root,
                         src_relative=current,
-                        dst_root=dst_root,
+                        dst_root=destination,
                         navigation=navigation,
                         )
                     found = True
                     break
                 if not found:
                     raise RuntimeError('Unknown action: %r' % action)
-
-    def listChildren(self):
-        for name in os.listdir(self.path):
-            if (name.startswith('.')
-                or name.startswith('_')
-                or name.startswith('#')
-                ):
-                continue
-            if name.endswith('~'):
-                continue
-
-            yield name

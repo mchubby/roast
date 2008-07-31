@@ -14,34 +14,6 @@ class _PathMixin(object):
         path = os.path.join(path, *segments)
         return path
 
-class Navigation_Test(_PathMixin):
-    def test_simple_list(self):
-        t = tree.Tree(self.path('data', 'simple', 'input'))
-        got = t.listChildren()
-        got = list(got)
-        eq(got, ['index.rst'])
-
-    def test_template_list(self):
-        t = tree.Tree(self.path('data', 'with-template', 'input'))
-        got = t.listChildren()
-        got = sets.ImmutableSet(got)
-        want = sets.ImmutableSet(['index.rst', 'one', 'two.rst'])
-        eq(got, want)
-
-    def test_misc_files(self):
-        t = tree.Tree(self.path('data', 'copy', 'input'))
-        got = t.listChildren()
-        got = sets.ImmutableSet(got)
-        want = sets.ImmutableSet([
-                'something.css',
-                'scripts.js',
-                'picture.png',
-                'ie-hacks.htc',
-                'boring.txt',
-                'another.jpg',
-                ])
-        eq(got, want)
-
 class Export_Test(_PathMixin):
     def verify(self, got, want):
         def walk(path):
