@@ -141,15 +141,18 @@ class TestFormattingMixin(object):
 
 class TestTreeMixin(object):
     def path(self, *segments):
-        path = os.path.dirname(__file__)
+        module = sys.modules[self.__class__.__module__]
+        path = os.path.dirname(module.__file__)
         path = os.path.join(path, *segments)
         return path
 
     def verify(self, got, want):
+        def fail(e):
+            raise e
         def walk(path):
             dirlist = []
             filelist = []
-            for root, dirs, files in os.walk(path):
+            for root, dirs, files in os.walk(path, onerror=fail):
                 assert root == path or root.startswith(path+'/')
                 relative = root[len(path+'/'):]
                 for name in dirs:
