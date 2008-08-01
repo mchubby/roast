@@ -6,39 +6,11 @@ from roast import tree
 from roast.test.util import (
     compare_files,
     maketemp,
+    TestTreeMixin,
     )
 
-class _PathMixin(object):
-    def path(self, *segments):
-        path = os.path.dirname(__file__)
-        path = os.path.join(path, *segments)
-        return path
 
-class Export_Test(_PathMixin):
-    def verify(self, got, want):
-        def walk(path):
-            dirlist = []
-            filelist = []
-            for root, dirs, files in os.walk(path):
-                assert root == path or root.startswith(path+'/')
-                relative = root[len(path+'/'):]
-                for name in dirs:
-                    dirlist.append(os.path.join(relative, name))
-                for name in files:
-                    filelist.append(os.path.join(relative, name))
-            return sorted(dirlist), sorted(filelist)
-
-        got_dirs, got_files = walk(got)
-        want_dirs, want_files = walk(want)
-        eq(got_dirs, want_dirs)
-        eq(got_files, want_files)
-
-        for path in got_files:
-            compare_files(
-                got=os.path.join(got, path),
-                want=os.path.join(want, path),
-                )
-
+class Export_Test(TestTreeMixin):
 
     def test_simple(self):
         t = tree.Tree(self.path('data', 'simple', 'input'))
