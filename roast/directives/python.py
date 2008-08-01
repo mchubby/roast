@@ -16,7 +16,8 @@ def python(name, arguments, options, content, lineno,
         filename = os.path.normpath(os.path.join(source_dir, filename))
         filename = utils.relative_path(None, filename)
         state.document.settings.record_dependencies.add(filename)
-        inp = file(filename)
+        op = state.document.settings.roast_operation
+        inp = op.open_input(filename)
     outp = StringIO()
     htmlizer.filter(inp, outp, writer=htmlizer.SmallerHTMLWriter)
     html = outp.getvalue()

@@ -1,6 +1,7 @@
-from roast import rst
+import os
 
 from roast import tree
+
 from roast.test.util import (
     compare_files,
     maketemp,
@@ -25,3 +26,21 @@ class Python_Test(TestTreeMixin):
         tmp = maketemp()
         t.export(tmp)
         self.verify(tmp, self.path('data', 'python-include', 'output'))
+
+    def test_subdir_include(self):
+        t = tree.Tree(self.path('data', 'python-subdir-include', 'input'))
+        tmp = maketemp()
+        t.export(tmp)
+        self.verify(tmp, self.path('data', 'python-subdir-include', 'output'))
+
+    def test_subdir_include_relative(self):
+        path = self.path('data', 'python-subdir-include', 'input')
+        # make a relative path that points to path
+        curdir = os.getcwd()
+        prefix = curdir+'/'
+        assert path.startswith(prefix)
+        relative = path[len(prefix):]
+        t = tree.Tree(relative)
+        tmp = maketemp()
+        t.export(tmp)
+        self.verify(tmp, self.path('data', 'python-subdir-include', 'output'))
