@@ -9,6 +9,9 @@ from roast import htmlutil
 from roast.directives import python
 python.install()
 
+from roast.directives import include
+include.install()
+
 from roast.directives import blockquote
 blockquote.install()
 
@@ -46,6 +49,7 @@ def asDOM(
     flavor=None,
     s5_theme_url=None,
     navigation=None,
+    operation=None,
     ):
     if flavor is None:
         flavor = 'html'
@@ -56,6 +60,23 @@ def asDOM(
         embed_stylesheet=False,
         stylesheet_path=htmlutil.KLUDGE_KILL_CSS,
         generator=False,
+
+        # TODO file insertion should really be disabled
+        # but can't do that now, as that would make the
+        # original include directive fail.. also can't
+        # just temporarily enable it to kludge, as that
+        # would mean the included file sees it as fully
+        # enabled.. will have to reimplement include.
+
+#         file_insertion_enabled=0,
+
+        # TODO ponder disabling raw; it allows content creators to
+        # attack the site
+
+#         raw_enabled=0,
+
+        _disable_config=1,
+        roast_operation=operation,
         )
 
     if flavor == 's5':

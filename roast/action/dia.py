@@ -1,24 +1,49 @@
 import os
 import subprocess
 
-def export_dia(dia, png):
-    tmp = '%s.tmp' % png
-    returncode = subprocess.call(
+def export_dia(dia_fp, png_fp):
+    # dia insists on outputting a "src -> dst" text to stdout,
+    # and subprocess can't pass other fds than stdin/out/err,
+    # so we need to jump through hoops
+
+    r, w = os.pipe()
+
+    def prepare():
+        os.dup2(w, 10)
+        os.close(w)
+        os.close(r)
+
+    p = subprocess.Popen(
         args=[
             'dia',
             '--filter=png-libart',
-            '--export=%s' % tmp,
-            '%s' % dia,
+            # this is probably too linux-specific
+            '--export=/proc/self/fd/10',
+            '/dev/stdin',
             ],
+        stdin=dia_fp,
+        close_fds=False,
+        preexec_fn=prepare,
         )
+
+    os.close(w)
+
+    tmp_fp = os.fdopen(r, 'rb')
+    while True:
+        data = tmp_fp.read(8192)
+        if not data:
+            break
+        png_fp.write(data)
+
+    returncode = p.wait()
     if returncode!=0:
         raise RuntimeError('dia failed with status %d' % returncode)
-    os.rename(tmp, png)
 
-def process(config, src_root, src_relative, dst_root, navigation):
-    base, ext = os.path.splitext(src_relative)
-    png = os.path.join(dst_root, base+'.png')
+def process(op):
+    base, ext = os.path.splitext(op.path)
+    png_fp = op.open_output(base+'.png')
     export_dia(
-        dia=os.path.join(src_root, src_relative),
-        png=png,
+        dia_fp=op.input,
+        png_fp=png_fp,
         )
+    png_fp.close()

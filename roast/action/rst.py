@@ -1,3 +1,4 @@
+import errno
 import ConfigParser
 import os
 import re
@@ -21,30 +22,34 @@ def _fixLinks(tree, depth):
 
         work[:0] = node.childNodes
 
-def _lookUp(root, relative, target):
+def _lookUp(op, target):
+    relative = os.path.dirname(op.path)
+
     while True:
         path = os.path.join(relative, target)
-        if os.path.isfile(os.path.join(root, path)):
-            return path
+
+        try:
+            f = op.open_input(path)
+        except IOError, e:
+            if e.errno == errno.ENOENT:
+                pass
+            else:
+                raise
+        else:
+            return f
+
         if not relative:
             break
 
         relative = os.path.dirname(relative)
 
-def process(config, src_root, src_relative, dst_root, navigation):
-    src = os.path.join(src_root, src_relative)
-    base, ext = os.path.splitext(src_relative)
-    dst = os.path.join(dst_root, base+'.html')
-
-    f = file(src)
-    try:
-        text = f.read()
-    finally:
-        f.close()
+def process(op):
+    text = op.input.read()
 
     kwargs = dict(
-        navigation=navigation,
-        source_path=src,
+        navigation=op.navigation,
+        source_path=op.path,
+        operation=op,
         )
     if re.search(
         r'^\.\.\s+include::\s+<s5defs.txt>\s*$',
@@ -53,8 +58,8 @@ def process(config, src_root, src_relative, dst_root, navigation):
         ):
         kwargs['flavor'] = 's5'
         try:
-            theme = config.get(
-                section='file %s' % src_relative,
+            theme = op.config.get(
+                section='file %s' % op.path,
                 option='s5-theme-url',
                 )
         except (
@@ -65,29 +70,25 @@ def process(config, src_root, src_relative, dst_root, navigation):
         kwargs['s5_theme_url'] = theme
     else:
         kwargs['flavor'] = 'html'
-        template = _lookUp(
-            root=src_root,
-            relative=os.path.dirname(src_relative),
-            target='_template.html',
-            )
+        template = _lookUp(op, '_template.html')
         if template is not None:
-            f = file(os.path.join(src_root, template))
             try:
-                kwargs['template'] = f.read()
+                kwargs['template'] = template.read()
             finally:
-                f.close()
+                template.close()
 
     tree = rst.asDOM(text, **kwargs)
 
-    depth = src_relative.count('/')
+    depth = op.path.count('/')
     _fixLinks(tree, depth)
 
     html = tree.toxml('utf-8')
-    tmp = '%s.tmp' % dst
-    f = file(tmp, 'w')
+
+    base, ext = os.path.splitext(op.path)
+    dst = '%s.html' % base
+    f = op.open_output(dst)
     try:
         f.write(html)
         f.write('\n')
     finally:
         f.close()
-    os.rename(tmp, dst)

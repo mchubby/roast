@@ -1,3 +1,5 @@
+from __future__ import with_statement
+
 import errno
 import os
 import pkg_resources
@@ -9,6 +11,78 @@ from roast import (
     ordered_config_parser,
     get_config,
     )
+
+class Operation(object):
+    def __init__(self, **kw):
+        self.src_root = kw.pop('src_root')
+        self.dst_root = kw.pop('dst_root')
+        self.path = kw.pop('path')
+        self.config = kw.pop('config')
+        self.navigation = kw.pop('navigation')
+
+        self.input = file(
+            os.path.join(self.src_root, self.path),
+            'rb',
+            )
+
+        self.output_files = {}
+
+        super(Operation, self).__init__(**kw)
+
+    def open_input(self, path):
+        # TODO better checks..
+        assert not path.startswith('/')
+        assert not path.startswith('.')
+        assert '/.'not in path
+        fullpath = os.path.join(self.src_root, path)
+        return file(fullpath, 'rb')
+
+    def kludgy_translate_pathname(self, path):
+        # TODO get rid of me
+
+        # TODO better checks..
+        assert not path.startswith('/')
+        assert not path.startswith('.')
+        assert '/.'not in path
+        fullpath = os.path.join(self.src_root, path)
+        return fullpath
+
+    def open_output(self, path):
+        # TODO better checks..
+        assert not path.startswith('/')
+        assert not path.startswith('.')
+        assert '/.'not in path
+        fullpath = os.path.join(self.dst_root, path)
+        if os.path.exists(fullpath):
+            raise RuntimeError(
+                'Output file exists already: %r' % fullpath,
+                )
+        if path in self.output_files:
+            raise RuntimeError(
+                'Output file opened already: %r' % fullpath,
+                )
+
+        f = os.tmpfile()
+        self.output_files[path] = f
+
+        # dup the fd so the action freely .close()
+        fd = os.dup(f.fileno())
+        f2 = os.fdopen(fd, 'w')
+        return f2
+
+    def close(self):
+        self.input.close()
+
+        for path, tempfile in self.output_files.items():
+            tempfile.seek(0)
+            dst = os.path.join(self.dst_root, path)
+            with file(dst, 'wb') as f:
+                while True:
+                    data = tempfile.read(8192)
+                    if not data:
+                        break
+                    f.write(data)
+                tempfile.close()
 
 class Tree(object):
     def __init__(self, path, _root=None, _navigation=None):
@@ -99,20 +173,24 @@ class Tree(object):
                     current='/'+base,
                     )
 
-                found = False
-                for entrypoint in pkg_resources.iter_entry_points(
+                g = pkg_resources.iter_entry_points(
                     'roast.action',
                     action,
-                    ):
-                    fn = entrypoint.load()
-                    fn(
-                        config=self.config,
-                        src_root=self.root,
-                        src_relative=current,
-                        dst_root=destination,
-                        navigation=navigation,
-                        )
-                    found = True
-                    break
-                if not found:
+                    )
+                try:
+                    entrypoint = g.next()
+                except StopIteration:
                     raise RuntimeError('Unknown action: %r' % action)
+
+                op = Operation(
+                    src_root=self.root,
+                    dst_root=destination,
+                    path=current,
+                    config=self.config,
+                    navigation=navigation,
+                    )
+
+                fn = entrypoint.load()
+                fn(op)
+
+                op.close()

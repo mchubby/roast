@@ -1,7 +1,10 @@
 import os
-import shutil
 
-def process(config, src_root, src_relative, dst_root, navigation):
-    src = os.path.join(src_root, src_relative)
-    dst = os.path.join(dst_root, src_relative)
-    shutil.copyfile(src, dst)
+def process(op):
+    f = op.open_output(op.path)
+    while True:
+        data = op.input.read(8192)
+        if not data:
+            break
+        f.write(data)
+    f.close()
