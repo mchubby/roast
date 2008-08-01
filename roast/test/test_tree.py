@@ -94,6 +94,18 @@ class Export_Test(_PathMixin):
         t.export(tmp)
         self.verify(tmp, self.path('data', 'subdir-include', 'output'))
 
+    def test_subdir_include_relative(self):
+        path = self.path('data', 'subdir-include', 'input')
+        # make a relative path that points to path
+        curdir = os.getcwd()
+        prefix = curdir+'/'
+        assert path.startswith(prefix)
+        relative = path[len(prefix):]
+        t = tree.Tree(relative)
+        tmp = maketemp()
+        t.export(tmp)
+        self.verify(tmp, self.path('data', 'subdir-include', 'output'))
+
     def test_ignore(self):
         t = tree.Tree(self.path('data', 'ignore', 'input'))
         tmp = maketemp()

@@ -35,6 +35,10 @@ class Wrapper(object):
                 )
             fullpath = op.kludgy_translate_pathname(relative)
 
+            # it must be an absolute path or docutils include
+            # directive will join source dirname in front
+            fullpath = os.path.abspath(fullpath)
+
         return self._wrapped(
             name, [fullpath], options, content, lineno,
             content_offset, block_text, state, state_machine,
