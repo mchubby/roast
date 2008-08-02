@@ -8,7 +8,7 @@
   <head>
     <title>
       Page with a template:
-      <nevow:invisible nevow:render="title">
+      <nevow:invisible nevow:render="data" nevow:data="title">
 	Replace title here
       </nevow:invisible>
     </title>
@@ -16,7 +16,7 @@
   <body>
     <h1>
       Header from template:
-      <nevow:invisible nevow:render="title">
+      <nevow:invisible nevow:render="data" nevow:data="title">
 	Replace title here
       </nevow:invisible>
     </h1>

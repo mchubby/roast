@@ -24,8 +24,8 @@ class Template(rend.Fragment):
         self.navigation = kw.pop('navigation')
         super(Template, self).__init__(**kw)
 
-    def render_title(self, ctx, data):
-        return ctx.tag.clear()[self.title]
+    def data_title(self, ctx, data):
+        return self.title
 
     def render_content(self, ctx, data):
         l = [tags.xml(node.toxml('utf-8')) for node in self.original.childNodes]
