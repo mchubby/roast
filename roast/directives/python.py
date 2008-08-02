@@ -2,13 +2,13 @@ import os
 from docutils.parsers import rst
 from docutils import nodes, utils
 from cStringIO import StringIO
-from twisted.python import htmlizer
+from pygments import lexers, formatters, highlight
 
 def python(name, arguments, options, content, lineno,
            content_offset, block_text, state, state_machine):
     filename = options.get('filename', None)
     if filename is None:
-        inp = StringIO('\n'.join(content).encode('utf-8'))
+        code = u'\n'.join(content)
     else:
         source = state_machine.input_lines.source(
             lineno - state_machine.input_offset - 1)
@@ -18,9 +18,16 @@ def python(name, arguments, options, content, lineno,
         state.document.settings.record_dependencies.add(filename)
         op = state.document.settings.roast_operation
         inp = op.open_input(filename)
-    outp = StringIO()
-    htmlizer.filter(inp, outp, writer=htmlizer.SmallerHTMLWriter)
-    html = outp.getvalue()
+        code = inp.read().decode('utf-8')
+        inp.close()
+
+    lexer = lexers.get_lexer_by_name('python')
+    formatter = formatters.HtmlFormatter()
+    html = highlight(
+        code=code,
+        lexer=lexer,
+        formatter=formatter,
+        )
 
     if arguments:
         title_text = arguments[0]

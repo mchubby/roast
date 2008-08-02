@@ -32,5 +32,9 @@ TODO
             ],
         },
 
+    install_requires = [
+        'pygments>=0.9',
+        ],
+
     )
 
