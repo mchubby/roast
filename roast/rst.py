@@ -6,8 +6,8 @@ from nevow import rend, loaders, tags, flat
 
 from roast import htmlutil
 
-from roast.directives import python
-python.install()
+from roast.directives import sourcecode
+sourcecode.install()
 
 from roast.directives import include
 include.install()

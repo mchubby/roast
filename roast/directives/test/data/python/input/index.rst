@@ -2,6 +2,6 @@
  Simple ReStructuredText
 =========================
 
-.. python::
+.. sourcecode:: python
 
    foo = bar

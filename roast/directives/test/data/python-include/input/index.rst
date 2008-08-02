@@ -2,5 +2,5 @@
  Simple ReStructuredText
 =========================
 
-.. python::
+.. sourcecode:: python
    :filename: foo.py

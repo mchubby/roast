@@ -4,8 +4,10 @@ from docutils import nodes, utils
 from cStringIO import StringIO
 from pygments import lexers, formatters, highlight
 
-def python(name, arguments, options, content, lineno,
-           content_offset, block_text, state, state_machine):
+def sourcecode(
+    name, arguments, options, content, lineno,
+    content_offset, block_text, state, state_machine,
+    ):
     filename = options.get('filename', None)
     if filename is None:
         code = u'\n'.join(content)
@@ -21,7 +23,11 @@ def python(name, arguments, options, content, lineno,
         code = inp.read().decode('utf-8')
         inp.close()
 
-    lexer = lexers.get_lexer_by_name('python')
+    if arguments:
+        (syntax,) = arguments
+    else:
+        syntax = 'text'
+    lexer = lexers.get_lexer_by_name(syntax)
     formatter = formatters.HtmlFormatter()
     html = highlight(
         code=code,
@@ -46,12 +52,12 @@ def python(name, arguments, options, content, lineno,
 
     return [fig] + messages
 
-python.arguments = (0, 0, True)
-python.options = dict(
+sourcecode.arguments = (0, 1, True)
+sourcecode.options = dict(
     filename=rst.directives.path,
     title=rst.directives.unchanged,
     )
-python.content = 1
+sourcecode.content = 1
 
 def install():
-    rst.directives.register_directive('python', python)
+    rst.directives.register_directive('sourcecode', sourcecode)
