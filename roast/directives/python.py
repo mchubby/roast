@@ -29,8 +29,8 @@ def python(name, arguments, options, content, lineno,
         formatter=formatter,
         )
 
-    if arguments:
-        title_text = arguments[0]
+    title_text = options.get('title')
+    if title_text:
         text_nodes, messages = state.inline_text(title_text, lineno)
         title = nodes.caption('', '# ', *text_nodes)
     else:
@@ -46,9 +46,11 @@ def python(name, arguments, options, content, lineno,
 
     return [fig] + messages
 
-python.arguments = (0, 1, True)
-python.options = dict(filename=rst.directives.path,
-                      )
+python.arguments = (0, 0, True)
+python.options = dict(
+    filename=rst.directives.path,
+    title=rst.directives.unchanged,
+    )
 python.content = 1
 
 def install():

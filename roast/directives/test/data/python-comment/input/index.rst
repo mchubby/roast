@@ -2,6 +2,7 @@
  Simple ReStructuredText
 =========================
 
-.. python:: a comment at the start
+.. python::
+   :title: a comment at the start
 
    foo = bar
