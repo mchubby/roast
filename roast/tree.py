@@ -184,9 +184,9 @@ class Tree(object):
             if cfg is None:
                 log.debug('Nothing configured.')
                 continue
-            action = cfg.get('action')
-            if action is None:
-                log.debug('No action.')
+            actions = cfg.get('action')
+            if actions is None:
+                log.debug('No actions.')
                 continue
 
             # special case index.html; link points to dir itself
@@ -198,57 +198,61 @@ class Tree(object):
                 current='/'+base,
                 )
 
-            l = action.split(None, 1)
-            action = l.pop(0)
-            if l:
-                (args,) = l
-            else:
-                args = None
-
-            g = pkg_resources.iter_entry_points(
-                'roast.action',
-                action,
-                )
-            try:
-                entrypoint = g.next()
-            except StopIteration:
-                raise RuntimeError('Unknown action: %r' % action)
-
-            log.debug('Action %r(%r) at %r', action, args, entrypoint)
-            if type_ == 'input':
-                input_ = file(
-                    os.path.join(self.root, current),
-                    'rb',
-                    )
-            elif type_ == 'output':
-                input_ = file(
-                    os.path.join(destination, current),
-                    'rb',
-                    )
-            else:
-                raise RuntimeError()
-            op = Operation(
-                input=input_,
-                path=current,
-                src_root=self.root,
-                dst_root=destination,
-                config=self.config,
-                navigation=navigation,
-                )
-
-            fn = entrypoint.load()
-            kwargs = dict(
-                op=op,
-                )
-            if args is not None:
-                kwargs['args'] = args
-            fn(**kwargs)
-
-            for path in op.output_files:
-                if path == op.path:
-                    # don't re-add itself to queue, that would lead to
-                    # an infinite loop with most actions
+            for action in actions.split('\n'):
+                l = action.split(None, 1)
+                if not l:
+                    # pure whitespace
                     continue
-                queue.add(('output', path))
+                action = l.pop(0)
+                if l:
+                    (args,) = l
+                else:
+                    args = None
 
-            op.close()
+                g = pkg_resources.iter_entry_points(
+                    'roast.action',
+                    action,
+                    )
+                try:
+                    entrypoint = g.next()
+                except StopIteration:
+                    raise RuntimeError('Unknown action: %r' % action)
+
+                log.debug('Action %r(%r) at %r', action, args, entrypoint)
+                if type_ == 'input':
+                    input_ = file(
+                        os.path.join(self.root, current),
+                        'rb',
+                        )
+                elif type_ == 'output':
+                    input_ = file(
+                        os.path.join(destination, current),
+                        'rb',
+                        )
+                else:
+                    raise RuntimeError()
+                op = Operation(
+                    input=input_,
+                    path=current,
+                    src_root=self.root,
+                    dst_root=destination,
+                    config=self.config,
+                    navigation=navigation,
+                    )
+
+                fn = entrypoint.load()
+                kwargs = dict(
+                    op=op,
+                    )
+                if args is not None:
+                    kwargs['args'] = args
+                fn(**kwargs)
+
+                for path in op.output_files:
+                    if path == op.path:
+                        # don't re-add itself to queue, that would lead to
+                        # an infinite loop with most actions
+                        continue
+                    queue.add(('output', path))
+
+                op.close()
