@@ -8,6 +8,8 @@ import shutil
 import subprocess
 import sys
 
+from roast.util import maybe_mkdir
+
 def find_test_name():
     try:
         from nose.case import Test
@@ -46,18 +48,9 @@ def find_test_name():
             if name is not None:
                 return name
 
-def mkdir(*a, **kw):
-    try:
-        os.mkdir(*a, **kw)
-    except OSError, e:
-        if e.errno == errno.EEXIST:
-            pass
-        else:
-            raise
-
 def maketemp():
     tmp = os.path.join(os.path.dirname(__file__), 'tmp')
-    mkdir(tmp)
+    maybe_mkdir(tmp)
 
     name = find_test_name()
     tmp = os.path.join(tmp, name)

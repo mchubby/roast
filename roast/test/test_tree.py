@@ -101,3 +101,9 @@ class Export_Test(TestTreeMixin):
         tmp = maketemp()
         t.export(tmp)
         self.verify(tmp, self.path('data', 'entities', 'output'))
+
+    def test_xsl(self):
+        t = tree.Tree(self.path('data', 'xslt', 'input'))
+        tmp = maketemp()
+        t.export(tmp)
+        self.verify(tmp, self.path('data', 'xslt', 'output'))

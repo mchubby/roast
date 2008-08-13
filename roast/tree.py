@@ -1,6 +1,7 @@
 from __future__ import with_statement
 
 import errno
+import logging
 import os
 import pkg_resources
 from zope.interface import implements
@@ -10,20 +11,19 @@ from roast import (
     navi_current,
     ordered_config_parser,
     get_config,
+    util,
     )
+
+log = logging.getLogger('roast')
 
 class Operation(object):
     def __init__(self, **kw):
+        self.input = kw.pop('input')
         self.src_root = kw.pop('src_root')
         self.dst_root = kw.pop('dst_root')
         self.path = kw.pop('path')
         self.config = kw.pop('config')
         self.navigation = kw.pop('navigation')
-
-        self.input = file(
-            os.path.join(self.src_root, self.path),
-            'rb',
-            )
 
         self.output_files = {}
 
@@ -53,10 +53,13 @@ class Operation(object):
         assert not path.startswith('.')
         assert '/.'not in path
         fullpath = os.path.join(self.dst_root, path)
-        if os.path.exists(fullpath):
-            raise RuntimeError(
-                'Output file exists already: %r' % fullpath,
-                )
+        if path != self.path:
+            # existing file checking is skipped for actions processing
+            # the file itself
+            if os.path.exists(fullpath):
+                raise RuntimeError(
+                    'Output file exists already: %r' % fullpath,
+                    )
         if path in self.output_files:
             raise RuntimeError(
                 'Output file opened already: %r' % fullpath,
@@ -75,6 +78,7 @@ class Operation(object):
 
         for path, tempfile in self.output_files.items():
             tempfile.seek(0)
+            util.maybe_mkdir_from(self.dst_root, os.path.dirname(path))
             dst = os.path.join(self.dst_root, path)
             with file(dst, 'wb') as f:
                 while True:
@@ -130,7 +134,7 @@ class Tree(object):
 
     def export(self, destination):
         def safe_names(names):
-            return [
+            return (
                 name
                 for name in names
                 if not (name.startswith('.')
@@ -138,60 +142,113 @@ class Tree(object):
                         or name.startswith('#')
                         )
                 and not name.endswith('~')
-                ]
+                )
 
-        for dirpath, dirnames, filenames in os.walk(self.path):
-            dirnames[:] = safe_names(dirnames)
-            filenames[:] = safe_names(filenames)
+        def list_input_files(path):
+            for dirpath, dirnames, filenames in os.walk(self.path):
+                dirnames[:] = safe_names(dirnames)
 
-            if dirpath == self.root:
-                relative_dir = ''
+                if dirpath == self.root:
+                    relative_dir = ''
+                else:
+                    assert dirpath.startswith(self.root + '/')
+                    relative_dir = dirpath[len(self.root)+1:]
+
+                for filename in safe_names(filenames):
+                    yield os.path.join(relative_dir, filename)
+
+        # Unordered queue of "dirty" output files, that we need to
+        # check whether someone wants to process. There is no loop
+        # detection -- it is highly suggested you do not create one ;)
+
+        # TODO confuses input and output files!
+        queue = set(
+            ('input', path)
+            for path in list_input_files(self.path)
+            )
+
+        # TODO maybe actions can raise RequireFiles('pathname', ...),
+        # to make them be retried later when the (output) files are
+        # available?
+
+        while queue:
+
+            (type_, current) = queue.pop()
+            log.info('Process %s: %s', type_, current)
+
+            cfg = get_config.get_config(
+                cfg=self.config,
+                type_=type_,
+                path=current,
+                )
+            if cfg is None:
+                log.debug('Nothing configured.')
+                continue
+            action = cfg.get('action')
+            if action is None:
+                log.debug('No action.')
+                continue
+
+            # special case index.html; link points to dir itself
+            base, ext = os.path.splitext(current)
+            if base.endswith('/index'):
+                base = base[:-len('/index')]
+            navigation = navi_current.navi_mark_current(
+                navigation=self.navigation,
+                current='/'+base,
+                )
+
+            l = action.split(None, 1)
+            action = l.pop(0)
+            if l:
+                (args,) = l
             else:
-                assert dirpath.startswith(self.root + '/')
-                relative_dir = dirpath[len(self.root)+1:]
-                os.mkdir(os.path.join(destination, relative_dir))
+                args = None
 
-            for filename in filenames:
-                current = os.path.join(relative_dir, filename)
+            g = pkg_resources.iter_entry_points(
+                'roast.action',
+                action,
+                )
+            try:
+                entrypoint = g.next()
+            except StopIteration:
+                raise RuntimeError('Unknown action: %r' % action)
 
-                cfg = get_config.get_config(
-                    cfg=self.config,
-                    type_='input',
-                    path=current,
+            log.debug('Action %r(%r) at %r', action, args, entrypoint)
+            if type_ == 'input':
+                input_ = file(
+                    os.path.join(self.root, current),
+                    'rb',
                     )
-                if cfg is None:
+            elif type_ == 'output':
+                input_ = file(
+                    os.path.join(destination, current),
+                    'rb',
+                    )
+            else:
+                raise RuntimeError()
+            op = Operation(
+                input=input_,
+                path=current,
+                src_root=self.root,
+                dst_root=destination,
+                config=self.config,
+                navigation=navigation,
+                )
+
+            fn = entrypoint.load()
+            kwargs = dict(
+                op=op,
+                )
+            if args is not None:
+                kwargs['args'] = args
+            fn(**kwargs)
+
+            for path in op.output_files:
+                if path == op.path:
+                    # don't re-add itself to queue, that would lead to
+                    # an infinite loop with most actions
                     continue
-                action = cfg.get('action')
-                if action is None:
-                    continue
+                queue.add(('output', path))
 
-                # special case index.html; link points to dir itself
-                base, ext = os.path.splitext(current)
-                if base.endswith('/index'):
-                    base = base[:-len('/index')]
-                navigation = navi_current.navi_mark_current(
-                    navigation=self.navigation,
-                    current='/'+base,
-                    )
-
-                g = pkg_resources.iter_entry_points(
-                    'roast.action',
-                    action,
-                    )
-                try:
-                    entrypoint = g.next()
-                except StopIteration:
-                    raise RuntimeError('Unknown action: %r' % action)
-
-                op = Operation(
-                    src_root=self.root,
-                    dst_root=destination,
-                    path=current,
-                    config=self.config,
-                    navigation=navigation,
-                    )
-
-                fn = entrypoint.load()
-                fn(op)
-
-                op.close()
+            op.close()

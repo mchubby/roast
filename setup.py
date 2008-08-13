@@ -29,11 +29,13 @@ TODO
             'dia = roast.action.dia:process',
             'copy = roast.action.copy:process',
             'ignore = roast.action.ignore:process',
+            'xsl = roast.action.xsl:process',
             ],
         },
 
     install_requires = [
         'pygments>=0.9',
+        'lxml>=1.3.6',
         ],
 
     )
