@@ -9,7 +9,7 @@ def export_dia(dia_fp, png_fp):
     r, w = os.pipe()
 
     def prepare():
-        os.dup2(w, 10)
+        os.dup2(w, 100)
         os.close(w)
         os.close(r)
 
@@ -18,7 +18,7 @@ def export_dia(dia_fp, png_fp):
             'dia',
             '--filter=png-libart',
             # this is probably too linux-specific
-            '--export=/proc/self/fd/10',
+            '--export=/proc/self/fd/100',
             '/dev/stdin',
             ],
         stdin=dia_fp,
