@@ -156,6 +156,7 @@ class Tree(object):
 
                 cfg = get_config.get_config(
                     cfg=self.config,
+                    type_='input',
                     path=current,
                     )
                 if cfg is None:

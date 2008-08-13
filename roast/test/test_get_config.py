@@ -15,11 +15,11 @@ def test_example():
 [foo]
 # i am here to trigger bugs
 
-[file *.rst]
+[input *.rst]
 action = rst
 s5-theme-url = /s5-themes/default
 
-[file *.jpg]
+[input *.jpg]
 action = copy
 
 #TODO
@@ -30,25 +30,25 @@ action = copy
 # overrides!
 #TODO
 # [file /foo/index.rst]
-[file foo/index.rst]
+[input foo/index.rst]
 s5-theme-url = /s5-themes/foo
 """))
 
-    got = get_config.get_config(cfg, 'bar.rst')
+    got = get_config.get_config(cfg, 'input', 'bar.rst')
     eq(got, {'action': 'rst', 's5-theme-url': '/s5-themes/default'})
 
-    got = get_config.get_config(cfg, 'foo/bar.rst')
+    got = get_config.get_config(cfg, 'input', 'foo/bar.rst')
     eq(got, {'action': 'rst', 's5-theme-url': '/s5-themes/default'})
 
-    got = get_config.get_config(cfg, 'foo/index.rst')
+    got = get_config.get_config(cfg, 'input', 'foo/index.rst')
     eq(got, {'action': 'rst', 's5-theme-url': '/s5-themes/foo'})
 
-    got = get_config.get_config(cfg, 'foo/baz.jpg')
+    got = get_config.get_config(cfg, 'input', 'foo/baz.jpg')
     eq(got, {'action': 'copy'})
 
 #TODO
 #     got = get_config.get_config(cfg, 'toplevel.jpg')
 #     eq(got, {'action': 'frob'})
 
-    got = get_config.get_config(cfg, 'does-not-match.quux')
+    got = get_config.get_config(cfg, 'input', 'does-not-match.quux')
     eq(got, None)

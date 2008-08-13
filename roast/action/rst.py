@@ -58,8 +58,9 @@ def process(op):
         ):
         kwargs['flavor'] = 's5'
         try:
+            # TODO do a proper globbing lookup
             theme = op.config.get(
-                section='file %s' % op.path,
+                section='input %s' % op.path,
                 option='s5-theme-url',
                 )
         except (
