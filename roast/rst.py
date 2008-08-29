@@ -1,6 +1,7 @@
 from docutils.core import publish_programmatically
 from docutils import io
 from docutils.writers import html4css1, s5_html
+from docutils.parsers.rst import roles
 from xml.dom import minidom
 from nevow import rend, loaders, tags, flat
 
@@ -92,6 +93,18 @@ def asDOM(
         writer = html4css1.Writer()
     else:
         raise 'Unknown RST flavor: %r' % flavor
+
+    # Docutils stores default `foo` role in global state that persists
+    # from one parser to another. Parsing directive "default-role"
+    # sets that, usually from s5defs.txt. To avoid infecting all
+    # latter runs (`foo` will create <span
+    # class="incremental">foo</span> instead of <cite>foo</cite>), we
+    # try to contain the damage, and restore the default role to
+    # original settings before every run.
+    try:
+        del roles._roles['']
+    except KeyError:
+        pass
 
     html, publisher = publish_programmatically(
         source_class=io.StringInput,
