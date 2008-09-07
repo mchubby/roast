@@ -16,7 +16,12 @@ def process(op, args=None):
 
     doc = etree.parse(op.input)
     result_tree = transform(doc)
-    html = etree.tostring(result_tree)
+    html = etree.tostring(
+        result_tree,
+        encoding='UTF-8',
+        xml_declaration=True,
+        pretty_print=True,
+        )
 
     with op.open_output(op.path) as f:
         try:
