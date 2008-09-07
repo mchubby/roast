@@ -30,6 +30,7 @@ TODO
             'copy = roast.action.copy:process',
             'ignore = roast.action.ignore:process',
             'xsl = roast.action.xsl:process',
+            'pygments-css = roast.action.pygments_css:process_css',
             ],
         },
 
